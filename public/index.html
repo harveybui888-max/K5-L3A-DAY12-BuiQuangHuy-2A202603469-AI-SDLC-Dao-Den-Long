@@ -455,6 +455,8 @@
     let tickAccumulator = 0;
     const tickTime = 1000 / 60;
 
+    let lastMoveDir = [0, -1];
+
     function animate(now) {
       requestAnimationFrame(animate);
       const dt = now - lastTime;
@@ -463,17 +465,29 @@
 
       while (tickAccumulator >= tickTime) {
         if (sim.state === 'playing') {
-          // Calculate move vector relative to camera yaw
-          let mx = 0;
-          let mz = 0;
-          if (keys.w) mz += 1;
-          if (keys.s) mz -= 1;
-          if (keys.a) mx -= 1;
-          if (keys.d) mx += 1;
+          // Calculate move vector relative to camera look direction
+          let inputForward = 0;
+          let inputRight = 0;
+          if (keys.w) inputForward += 1;
+          if (keys.s) inputForward -= 1;
+          if (keys.a) inputRight -= 1;
+          if (keys.d) inputRight += 1;
+
+          // Camera is at [px + 10*sin(camYaw), ..., pz + 10*cos(camYaw)] looking at player [px, ..., pz]
+          // Forward (away from camera) = [-sin(camYaw), -cos(camYaw)]
+          // Right = [cos(camYaw), -sin(camYaw)]
+          const sinY = Math.sin(camYaw);
+          const cosY = Math.cos(camYaw);
+          const worldMx = -inputForward * sinY + inputRight * cosY;
+          const worldMz = -inputForward * cosY - inputRight * sinY;
+
+          if (Math.abs(worldMx) > 0.01 || Math.abs(worldMz) > 0.01) {
+            lastMoveDir = [worldMx, worldMz];
+          }
 
           const events = sim.step({
-            move: [mx, mz],
-            cam_yaw_deg: (-camYaw * 180) / Math.PI,
+            move: [worldMx, worldMz],
+            cam_yaw_deg: 0,
             interact: keys.interact,
             pulse: keys.pulse
           });
@@ -492,6 +506,9 @@
 
       // Update 3D Entity Visuals
       playerGroup.position.set(sim.player.pos[0], sim.player.pos[1], sim.player.pos[2]);
+      if (Math.abs(lastMoveDir[0]) > 0.01 || Math.abs(lastMoveDir[1]) > 0.01) {
+        playerGroup.rotation.y = Math.atan2(lastMoveDir[0], lastMoveDir[1]);
+      }
 
       // Lanterns
       lanternMeshes.forEach(({ core, light, data }) => {
