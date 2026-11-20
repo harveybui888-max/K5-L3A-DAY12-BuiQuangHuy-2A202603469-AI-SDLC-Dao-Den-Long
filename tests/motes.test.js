@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Sim } from '../src/sim/sim.js';
 
-test('Player automatically picks up mote within pickup_radius (1.5m)', () => {
+test('Player automatically picks up mote within pickup_radius (1.0m XZ, 1.5m Y)', () => {
   const sim = new Sim({
     scenario: {
       player: { pos: [0, 0, 0], carried: 0 },
       random_motes: false,
       random_shades: false,
-      motes: [[0, 0, 1.2]]
+      motes: [[0, 0.5, 0.8]]
     }
   });
 
@@ -25,7 +25,7 @@ test('Player cannot carry more than carry_capacity (10) motes', () => {
       player: { pos: [0, 0, 0], carried: 10 },
       random_motes: false,
       random_shades: false,
-      motes: [[0, 0, 0.5]]
+      motes: [[0, 0.5, 0.5]]
     }
   });
 

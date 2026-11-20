@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đảo Đèn Lồng 3D — Lantern Island</title>
+  <title>Đảo Đèn Lồng 3D — Lantern Island (Phase 2)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
@@ -34,19 +34,20 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 20px;
+      padding: 16px;
     }
     .hud-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      gap: 12px;
     }
     .hud-card {
-      background: rgba(10, 15, 29, 0.75);
+      background: rgba(10, 15, 29, 0.85);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 204, 102, 0.25);
       border-radius: 12px;
-      padding: 12px 18px;
+      padding: 10px 16px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
     .flames {
@@ -55,7 +56,7 @@
       letter-spacing: 4px;
     }
     .motes {
-      font-size: 18px;
+      font-size: 16px;
       color: #ffd166;
       margin-top: 4px;
       font-weight: 600;
@@ -77,17 +78,31 @@
       text-align: right;
       font-weight: 600;
     }
+    .night-badge {
+      display: inline-block;
+      background: #e63946;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
     .lanterns-status {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       margin-top: 8px;
+      flex-wrap: wrap;
+      max-width: 480px;
     }
     .lantern-badge {
       background: rgba(20, 25, 45, 0.85);
       border: 1px solid #444;
       border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 14px;
+      padding: 4px 8px;
+      font-size: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -99,22 +114,67 @@
       color: #ffd166;
       box-shadow: 0 0 12px rgba(255, 209, 102, 0.4);
     }
+    .hud-skills {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .skill-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid #555;
+      color: #ccc;
+    }
+    .skill-badge.active {
+      border-color: #06d6a0;
+      color: #06d6a0;
+      background: rgba(6, 214, 160, 0.15);
+    }
+    .skill-badge.buff {
+      border-color: #ffd166;
+      color: #ffd166;
+      background: rgba(255, 209, 102, 0.2);
+      animation: pulse-buff 1s infinite alternate;
+    }
     .hud-bottom {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
     }
     .controls-hint {
-      font-size: 13px;
+      font-size: 12px;
       color: #aaa;
-      line-height: 1.6;
+      line-height: 1.5;
     }
     .controls-hint span {
       background: rgba(255, 255, 255, 0.15);
-      padding: 2px 6px;
+      padding: 2px 5px;
       border-radius: 4px;
       color: #fff;
       font-weight: bold;
+    }
+    #night-selector {
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    #night-selector button {
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #night-selector button.active {
+      background: #ffd166;
+      color: #0f172a;
+      border-color: #ffd166;
     }
     #minimap {
       width: 140px;
@@ -124,7 +184,42 @@
       border: 2px solid rgba(255, 209, 102, 0.3);
       box-shadow: 0 0 15px rgba(0,0,0,0.6);
     }
-    /* Notification Modal */
+    #pause-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 80;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    #pause-overlay h2 {
+      font-size: 42px;
+      color: #ffd166;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    #pause-overlay p {
+      font-size: 16px;
+      color: #aaa;
+      margin-bottom: 24px;
+    }
+    #pause-overlay button {
+      background: #ffd166;
+      color: #0f172a;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+    }
     #modal {
       position: absolute;
       top: 50%;
@@ -139,26 +234,21 @@
       box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
       display: none;
     }
-    #modal h1 { font-size: 36px; margin-bottom: 12px; }
-    #modal p { font-size: 18px; margin-bottom: 24px; color: #ccc; }
+    #modal h1 { font-size: 34px; margin-bottom: 12px; }
+    #modal p { font-size: 16px; margin-bottom: 20px; color: #ccc; }
     #modal button {
       background: #ffd166;
       color: #0c1223;
       border: none;
       padding: 12px 28px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       border-radius: 8px;
       cursor: pointer;
       pointer-events: auto;
-      transition: background 0.2s;
     }
-    #modal button:hover { background: #ffe299; }
-    @keyframes pulse-red {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
+    @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    @keyframes pulse-buff { 0% { box-shadow: 0 0 5px #ffd166; } 100% { box-shadow: 0 0 15px #ffd166; } }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -168,24 +258,37 @@
   <div id="hud">
     <div class="hud-top">
       <div class="hud-card">
+        <div>
+          <span class="night-badge" id="hud-night-name">ĐÊM 1: ĐẢO BẾN</span>
+        </div>
         <div class="flames" id="hud-flames">🔥🔥🔥</div>
         <div class="motes" id="hud-motes">🏮 Đom đóm: 0 / 10</div>
+        <div class="hud-skills">
+          <div class="skill-badge" id="badge-dash">Lướt: Sẵn sàng (Shift)</div>
+          <div class="skill-badge" id="badge-pulse">Tỏa Sáng: 3 Đom đóm (F)</div>
+          <div class="skill-badge" id="badge-charm" style="display:none;">Bùa Gió: 10s</div>
+        </div>
         <div class="lanterns-status" id="hud-lanterns"></div>
       </div>
       <div class="hud-card">
         <div class="timer" id="hud-timer">05:00</div>
+        <div id="wind-indicator" style="font-size:12px; color:#64ffda; text-align:center; display:none; margin-top:4px;">🍃 Gió giật 2 m/s</div>
       </div>
       <div class="hud-card">
         <div class="score" id="hud-score">Điểm: 0</div>
-        <div style="font-size: 13px; color: #888; margin-top: 4px; text-align: right;" id="hud-pulse">Xung Sáng: Sẵn sàng (F/Space)</div>
+        <div id="night-selector">
+          <button id="btn-night-1" class="active" onclick="switchNight(1)">Đêm 1</button>
+          <button id="btn-night-2" onclick="switchNight(2)">Đêm 2</button>
+          <button id="btn-night-3" onclick="switchNight(3)">Đêm 3</button>
+        </div>
       </div>
     </div>
 
     <div class="hud-bottom">
       <div class="hud-card controls-hint">
-        <p><span>W A S D</span> Di chuyển | <span>E</span> Nạp Đèn Lớn</p>
-        <p><span>Space</span> / <span>F</span> Xung Sáng (Tốn 1 đom đóm để xua Bóng Mực)</p>
-        <p><span>Chuột</span> Xoay camera</p>
+        <p><span>W A S D</span> Di chuyển | <span>Space</span> Nhảy | <span>Shift</span> Lướt (Dash)</p>
+        <p><span>E</span> Nạp Đèn Lớn (10 đom đóm) | <span>F</span> Tỏa Sáng (3 đom đóm)</p>
+        <p><span>P / Esc</span> Tạm dừng | <span>Kéo chuột</span> Xoay camera</p>
       </div>
       <canvas id="minimap" width="140" height="140"></canvas>
     </div>
@@ -193,14 +296,14 @@
 
   <div id="interact-prompt" style="
     position: absolute;
-    top: 70%;
+    top: 68%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(10, 16, 32, 0.92);
+    background: rgba(10, 16, 32, 0.94);
     border: 2px solid #ffd166;
     border-radius: 12px;
-    padding: 12px 24px;
-    font-size: 16px;
+    padding: 10px 20px;
+    font-size: 15px;
     font-weight: 700;
     color: #ffd166;
     box-shadow: 0 0 25px rgba(255, 209, 102, 0.4);
@@ -210,16 +313,48 @@
     text-align: center;
   "></div>
 
+  <div id="pause-overlay">
+    <h2>TẠM DỪNG</h2>
+    <p>Trò chơi đang dừng lại. Nhấn P, Esc hoặc nút bên dưới để tiếp tục.</p>
+    <button onclick="togglePause()">Tiếp Tục Chơi</button>
+  </div>
+
   <div id="modal">
     <h1 id="modal-title">CHIẾN THẮNG!</h1>
-    <p id="modal-desc">Bạn đã thắp sáng toàn bộ Đèn Lồng Lớn trên Đảo Bến!</p>
+    <p id="modal-desc">Bạn đã thắp sáng toàn bộ Đèn Lồng Lớn!</p>
     <button onclick="location.reload()">Chơi Lại</button>
   </div>
 
   <script type="module">
     import { Sim } from '/src/sim/sim.js';
+    import { MAPS } from '/src/sim/constants.js';
 
-    // 1. Audio Engine (Web Audio API procedural sound)
+    // Parse URL param for night
+    const urlParams = new URLSearchParams(window.location.search);
+    let selectedNight = parseInt(urlParams.get('night') || '1', 10);
+    if (![1, 2, 3].includes(selectedNight)) selectedNight = 1;
+
+    window.switchNight = function(n) {
+      window.location.search = `?night=${n}`;
+    };
+
+    // Update active button
+    [1, 2, 3].forEach((n) => {
+      const btn = document.getElementById(`btn-night-${n}`);
+      if (btn) {
+        if (n === selectedNight) btn.classList.add('active');
+        else btn.classList.remove('active');
+      }
+    });
+
+    const nightTitles = {
+      1: "ĐÊM 1: ĐẢO BẾN",
+      2: "ĐÊM 2: ĐẢO CAU",
+      3: "ĐÊM 3: ĐẢO CHUÔNG"
+    };
+    document.getElementById('hud-night-name').innerText = nightTitles[selectedNight];
+
+    // 1. Audio Engine
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playTone(freq, type, duration, gainVal = 0.1) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -236,25 +371,31 @@
     }
 
     const sfx = {
-      mote: () => playTone(880, 'sine', 0.2, 0.08),
-      deposit: () => playTone(440, 'triangle', 0.3, 0.1),
+      mote: () => playTone(880, 'sine', 0.18, 0.08),
+      deposit: () => playTone(440, 'triangle', 0.25, 0.1),
       lit: () => {
         playTone(523.25, 'sine', 0.4, 0.15);
-        setTimeout(() => playTone(659.25, 'sine', 0.4, 0.15), 150);
-        setTimeout(() => playTone(783.99, 'sine', 0.6, 0.2), 300);
+        setTimeout(() => playTone(659.25, 'sine', 0.4, 0.15), 120);
+        setTimeout(() => playTone(783.99, 'sine', 0.5, 0.2), 240);
       },
-      pulse: () => playTone(150, 'sawtooth', 0.5, 0.2),
-      hit: () => playTone(90, 'sawtooth', 0.4, 0.25)
+      dash: () => playTone(300, 'sine', 0.15, 0.15),
+      pulse: () => playTone(140, 'sawtooth', 0.45, 0.2),
+      hit: () => playTone(85, 'sawtooth', 0.4, 0.25),
+      charm: () => {
+        playTone(700, 'triangle', 0.2, 0.12);
+        setTimeout(() => playTone(1050, 'triangle', 0.3, 0.15), 100);
+      },
+      steal: () => playTone(220, 'square', 0.3, 0.15)
     };
 
-    // 2. Initialize Game Sim
-    const sim = new Sim({ seed: 42 });
+    // 2. Initialize Sim
+    const sim = new Sim({ seed: 42, night: selectedNight });
 
     // 3. Setup Three.js Scene
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x060914);
-    scene.fog = new THREE.FogExp2(0x060914, 0.025);
+    scene.background = new THREE.Color(0x050811);
+    scene.fog = new THREE.FogExp2(0x050811, 0.02);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -266,62 +407,146 @@
     const ambientLight = new THREE.AmbientLight(0x182035, 1.2);
     scene.add(ambientLight);
 
-    const moonLight = new THREE.DirectionalLight(0x7799bb, 0.8);
-    moonLight.position.set(20, 50, 20);
+    const moonLight = new THREE.DirectionalLight(0x7799bb, 0.85);
+    moonLight.position.set(30, 60, 30);
     scene.add(moonLight);
 
-    // Ocean Plane
-    const oceanGeo = new THREE.PlaneGeometry(300, 300);
-    const oceanMat = new THREE.MeshStandardMaterial({ color: 0x030712, roughness: 0.1, metalness: 0.8 });
+    // Ocean / Cloud Sea Plane
+    const oceanGeo = new THREE.PlaneGeometry(500, 500);
+    const oceanMat = new THREE.MeshStandardMaterial({ color: 0x030712, roughness: 0.15, metalness: 0.8 });
     const ocean = new THREE.Mesh(oceanGeo, oceanMat);
     ocean.rotation.x = -Math.PI / 2;
-    ocean.position.y = -0.1;
+    ocean.position.y = -10.5;
     scene.add(ocean);
 
-    // Island (Radius 40m)
-    const islandGeo = new THREE.CylinderGeometry(40, 42, 2, 64);
-    const islandMat = new THREE.MeshStandardMaterial({ color: 0x142018, roughness: 0.9 });
-    const island = new THREE.Mesh(islandGeo, islandMat);
-    island.position.y = -1;
-    scene.add(island);
+    // Environment Meshes (Terrain based on Night)
+    const mapProps = [];
 
-    // Island Border Stones
-    const stoneGroup = new THREE.Group();
-    for (let a = 0; a < Math.PI * 2; a += 0.2) {
-      const stoneGeo = new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.5);
-      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x222a30, roughness: 0.8 });
-      const stone = new THREE.Mesh(stoneGeo, stoneMat);
-      stone.position.set(40 * Math.sin(a), 0.2, 40 * Math.cos(a));
-      stoneGroup.add(stone);
+    if (selectedNight === 1) {
+      // Island r=40
+      const islandGeo = new THREE.CylinderGeometry(40, 42, 2, 64);
+      const islandMat = new THREE.MeshStandardMaterial({ color: 0x142018, roughness: 0.9 });
+      const island = new THREE.Mesh(islandGeo, islandMat);
+      island.position.y = -1;
+      scene.add(island);
+
+      // Border Stones
+      for (let a = 0; a < Math.PI * 2; a += 0.25) {
+        const stoneGeo = new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.4);
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x222a30, roughness: 0.8 });
+        const stone = new THREE.Mesh(stoneGeo, stoneMat);
+        stone.position.set(40 * Math.sin(a), 0.2, 40 * Math.cos(a));
+        scene.add(stone);
+      }
+    } else if (selectedNight === 2) {
+      // Island A: r=28 at (0,0)
+      const islandAGeo = new THREE.CylinderGeometry(28, 30, 2, 48);
+      const islandMat = new THREE.MeshStandardMaterial({ color: 0x16241b, roughness: 0.9 });
+      const islandA = new THREE.Mesh(islandAGeo, islandMat);
+      islandA.position.set(0, -1, 0);
+      scene.add(islandA);
+
+      // Island B: r=28 at (70,0)
+      const islandBGeo = new THREE.CylinderGeometry(28, 30, 2, 48);
+      const islandB = new THREE.Mesh(islandBGeo, islandMat);
+      islandB.position.set(70, -1, 0);
+      scene.add(islandB);
+
+      // Bamboo Bridge: x in [26, 44], z in [-2, 2] (length 18m, width 4m)
+      const bridgeGeo = new THREE.BoxGeometry(18, 0.4, 4);
+      const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.8 });
+      const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
+      bridge.position.set(35, -0.2, 0);
+      scene.add(bridge);
+
+      // Bamboo planks visual
+      for (let bx = 26.5; bx <= 43.5; bx += 1.2) {
+        const plankGeo = new THREE.CylinderGeometry(0.12, 0.12, 4.2, 8);
+        plankGeo.rotateZ(Math.PI / 2);
+        const plankMat = new THREE.MeshStandardMaterial({ color: 0x7c5a3a });
+        const plank = new THREE.Mesh(plankGeo, plankMat);
+        plank.position.set(bx, 0.05, 0);
+        scene.add(plank);
+      }
+    } else if (selectedNight === 3) {
+      // Tier 0: r=45 at Y=0
+      const t0Geo = new THREE.CylinderGeometry(45, 47, 2, 64);
+      const t0Mat = new THREE.MeshStandardMaterial({ color: 0x131f18, roughness: 0.9 });
+      const t0 = new THREE.Mesh(t0Geo, t0Mat);
+      t0.position.set(0, -1, 0);
+      scene.add(t0);
+
+      // Tier 1: Annulus r in [12, 24] with z > 0 at Y=3
+      const t1Geo = new THREE.CylinderGeometry(24, 24, 3, 32, 1, false, 0, Math.PI);
+      const t1Mat = new THREE.MeshStandardMaterial({ color: 0x1e2f24, roughness: 0.85 });
+      const t1 = new THREE.Mesh(t1Geo, t1Mat);
+      t1.position.set(0, 1.5, 0);
+      scene.add(t1);
+
+      // Tier 2: Disc r=8 at center, Y=6
+      const t2Geo = new THREE.CylinderGeometry(8, 8, 6, 32);
+      const t2Mat = new THREE.MeshStandardMaterial({ color: 0x273b2d, roughness: 0.8 });
+      const t2 = new THREE.Mesh(t2Geo, t2Mat);
+      t2.position.set(0, 3, 0);
+      scene.add(t2);
+
+      // Bell Tower at center: cylinder r=2m, height 8m on top of tier 2 (Y=6..14)
+      const towerGeo = new THREE.CylinderGeometry(2, 2.2, 8, 16);
+      const towerMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 });
+      const tower = new THREE.Mesh(towerGeo, towerMat);
+      tower.position.set(0, 10, 0);
+      scene.add(tower);
+
+      // Bell Tower roof
+      const roofGeo = new THREE.ConeGeometry(3.2, 2.5, 16);
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x991b1b });
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+      roof.position.set(0, 15.2, 0);
+      scene.add(roof);
     }
-    scene.add(stoneGroup);
 
-    // Player Mesh (Mây - người giữ đèn với nón lá)
+    // Jump Pads
+    const jumpPadMeshes = [];
+    const jumpPadsData = MAPS[selectedNight].jump_pads || [];
+    jumpPadsData.forEach((pad) => {
+      const padGroup = new THREE.Group();
+      const ringGeo = new THREE.RingGeometry(0.2, pad.radius, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.05;
+      padGroup.add(ring);
+
+      const glowLight = new THREE.PointLight(0x00f5d4, 1.5, 6);
+      glowLight.position.y = 0.5;
+      padGroup.add(glowLight);
+
+      padGroup.position.set(pad.pos[0], pad.pos[1], pad.pos[2]);
+      scene.add(padGroup);
+      jumpPadMeshes.push(padGroup);
+    });
+
+    // Player Mesh (Mây)
     const playerGroup = new THREE.Group();
-    
-    // Body (Áo dài lam)
     const bodyGeo = new THREE.CylinderGeometry(0.3, 0.45, 1.2, 16);
     const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3a6073 });
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     body.position.y = 0.6;
     playerGroup.add(body);
 
-    // Head
     const headGeo = new THREE.SphereGeometry(0.25, 16, 16);
     const headMat = new THREE.MeshStandardMaterial({ color: 0xfad0c4 });
     const head = new THREE.Mesh(headGeo, headMat);
     head.position.y = 1.35;
     playerGroup.add(head);
 
-    // Nón lá (Conical hat)
     const hatGeo = new THREE.ConeGeometry(0.7, 0.35, 24);
     const hatMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
     const hat = new THREE.Mesh(hatGeo, hatMat);
     hat.position.y = 1.55;
-    hat.rotation.z = 0.1; // hơi nghiêng duyên dáng
+    hat.rotation.z = 0.1;
     playerGroup.add(hat);
 
-    // Lồng đèn nhỏ cầm tay của Mây
     const handLantern = new THREE.PointLight(0xffcc66, 1.5, 8);
     const handLanternGeo = new THREE.SphereGeometry(0.12, 12, 12);
     const handLanternMat = new THREE.MeshBasicMaterial({ color: 0xffe082 });
@@ -333,41 +558,36 @@
 
     scene.add(playerGroup);
 
-    // 5 Lanterns
+    // Lanterns
     const lanternMeshes = [];
     sim.lanterns.forEach((l) => {
       const g = new THREE.Group();
-      
-      // Pillar
       const pillarGeo = new THREE.CylinderGeometry(0.4, 0.5, 2.5, 8);
       const pillarMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
       const pillar = new THREE.Mesh(pillarGeo, pillarMat);
       pillar.position.y = 1.25;
       g.add(pillar);
 
-      // Glass cage
       const cageGeo = new THREE.BoxGeometry(1.2, 1.5, 1.2);
       const cageMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, wireframe: true });
       const cage = new THREE.Mesh(cageGeo, cageMat);
       cage.position.y = 2.8;
       g.add(cage);
 
-      // Interaction Zone Ring on Ground (3.0m)
-      const ringGeo = new THREE.RingGeometry(2.9, 3.05, 32);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd166, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
+      // 6.0m Safe Zone Ring on Ground
+      const ringGeo = new THREE.RingGeometry(5.9, 6.1, 48);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd166, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = -Math.PI / 2;
       ring.position.y = 0.05;
       g.add(ring);
 
-      // Light core
       const coreGeo = new THREE.SphereGeometry(0.45, 16, 16);
       const coreMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
       const core = new THREE.Mesh(coreGeo, coreMat);
       core.position.y = 2.8;
       g.add(core);
 
-      // PointLight
       const light = new THREE.PointLight(0xffa500, 0, 16);
       light.position.y = 2.8;
       g.add(light);
@@ -381,14 +601,31 @@
     const moteMeshMap = new Map();
     const moteGeo = new THREE.SphereGeometry(0.18, 8, 8);
     const moteMat = new THREE.MeshBasicMaterial({ color: 0x64ffda });
+    const droppedMoteMat = new THREE.MeshBasicMaterial({ color: 0xffe066 });
 
     // Shades Meshes Map
     const shadeMeshMap = new Map();
     const shadeGeo = new THREE.SphereGeometry(0.8, 16, 16);
 
+    // Drifters Meshes Map
+    const drifterMeshMap = new Map();
+    const drifterGeo = new THREE.ConeGeometry(0.4, 1.5, 8);
+    drifterGeo.rotateX(Math.PI / 2);
+    const drifterMat = new THREE.MeshStandardMaterial({ color: 0x7209b7, emissive: 0x4361ee, roughness: 0.3 });
+
+    // Charms Meshes Map
+    const charmMeshMap = new Map();
+    const charmGeo = new THREE.OctahedronGeometry(0.5);
+    const charmMat = new THREE.MeshBasicMaterial({ color: 0x06d6a0 });
+
     // Input Handling
-    const keys = { w: false, a: false, s: false, d: false, interact: false, pulse: false };
+    const keys = { w: false, a: false, s: false, d: false, jump: false, dash: false, interact: false, pulse: false };
     let camYaw = 0;
+    let pendingPause = false;
+
+    window.togglePause = function() {
+      pendingPause = true;
+    };
 
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
@@ -397,8 +634,11 @@
       if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = true;
       if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = true;
       if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = true;
+      if (code === 'Space') keys.jump = true;
+      if (code === 'ShiftLeft' || code === 'ShiftRight' || code === 'KeyQ') keys.dash = true;
       if (k === 'e' || code === 'KeyE') keys.interact = true;
-      if (k === 'f' || code === 'KeyF' || code === 'Space' || k === ' ') keys.pulse = true;
+      if (k === 'f' || code === 'KeyF') keys.pulse = true;
+      if (k === 'p' || code === 'KeyP' || code === 'Escape') pendingPause = true;
     });
 
     window.addEventListener('keyup', (e) => {
@@ -408,8 +648,10 @@
       if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = false;
       if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = false;
       if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = false;
+      if (code === 'Space') keys.jump = false;
+      if (code === 'ShiftLeft' || code === 'ShiftRight' || code === 'KeyQ') keys.dash = false;
       if (k === 'e' || code === 'KeyE') keys.interact = false;
-      if (k === 'f' || code === 'KeyF' || code === 'Space' || k === ' ') keys.pulse = false;
+      if (k === 'f' || code === 'KeyF') keys.pulse = false;
     });
 
     let isMouseDown = false;
@@ -421,7 +663,7 @@
       }
     });
 
-    // Minimap Rendering
+    // Minimap
     const minimapCanvas = document.getElementById('minimap');
     const minimapCtx = minimapCanvas.getContext('2d');
 
@@ -430,24 +672,52 @@
       const h = 140;
       const cx = w / 2;
       const cy = h / 2;
-      const scale = (w / 2) / 42;
+      const maxR = selectedNight === 2 ? 80 : 45;
+      const scale = (w / 2) / (maxR * 1.15);
 
       minimapCtx.clearRect(0, 0, w, h);
-      
-      // Island base
-      minimapCtx.beginPath();
-      minimapCtx.arc(cx, cy, 40 * scale, 0, Math.PI * 2);
-      minimapCtx.fillStyle = 'rgba(20, 32, 24, 0.9)';
-      minimapCtx.fill();
-      minimapCtx.strokeStyle = 'rgba(255, 209, 102, 0.3)';
-      minimapCtx.stroke();
+
+      if (selectedNight === 1) {
+        minimapCtx.beginPath();
+        minimapCtx.arc(cx, cy, 40 * scale, 0, Math.PI * 2);
+        minimapCtx.fillStyle = 'rgba(20, 32, 24, 0.9)';
+        minimapCtx.fill();
+        minimapCtx.strokeStyle = 'rgba(255, 209, 102, 0.3)';
+        minimapCtx.stroke();
+      } else if (selectedNight === 2) {
+        // Islands A and B
+        const offset = 35 * scale;
+        minimapCtx.beginPath();
+        minimapCtx.arc(cx - offset, cy, 28 * scale, 0, Math.PI * 2);
+        minimapCtx.arc(cx + offset, cy, 28 * scale, 0, Math.PI * 2);
+        minimapCtx.fillStyle = 'rgba(20, 32, 24, 0.9)';
+        minimapCtx.fill();
+        // Bridge
+        minimapCtx.fillStyle = '#5c4033';
+        minimapCtx.fillRect(cx - 9 * scale, cy - 2 * scale, 18 * scale, 4 * scale);
+      } else if (selectedNight === 3) {
+        minimapCtx.beginPath();
+        minimapCtx.arc(cx, cy, 45 * scale, 0, Math.PI * 2);
+        minimapCtx.fillStyle = 'rgba(19, 31, 24, 0.9)';
+        minimapCtx.fill();
+        // Tier 1
+        minimapCtx.beginPath();
+        minimapCtx.arc(cx, cy, 24 * scale, Math.PI, 0);
+        minimapCtx.fillStyle = 'rgba(30, 47, 36, 0.9)';
+        minimapCtx.fill();
+        // Tier 2
+        minimapCtx.beginPath();
+        minimapCtx.arc(cx, cy, 8 * scale, 0, Math.PI * 2);
+        minimapCtx.fillStyle = 'rgba(39, 59, 45, 0.9)';
+        minimapCtx.fill();
+      }
 
       // Lanterns
       sim.lanterns.forEach((l) => {
-        const lx = cx + l.pos[0] * scale;
+        const lx = cx + (l.pos[0] - (selectedNight === 2 ? 35 : 0)) * scale;
         const ly = cy + l.pos[2] * scale;
         minimapCtx.beginPath();
-        minimapCtx.arc(lx, ly, 4, 0, Math.PI * 2);
+        minimapCtx.arc(lx, ly, 3.5, 0, Math.PI * 2);
         minimapCtx.fillStyle = l.lit ? '#ffd166' : '#555';
         minimapCtx.fill();
       });
@@ -455,14 +725,14 @@
       // Motes
       minimapCtx.fillStyle = '#64ffda';
       sim.motes.forEach((m) => {
-        const mx = cx + m.pos[0] * scale;
+        const mx = cx + (m.pos[0] - (selectedNight === 2 ? 35 : 0)) * scale;
         const my = cy + m.pos[2] * scale;
         minimapCtx.fillRect(mx - 1, my - 1, 2, 2);
       });
 
       // Shades
       sim.shades.forEach((s) => {
-        const sx = cx + s.pos[0] * scale;
+        const sx = cx + (s.pos[0] - (selectedNight === 2 ? 35 : 0)) * scale;
         const sy = cy + s.pos[2] * scale;
         minimapCtx.beginPath();
         minimapCtx.arc(sx, sy, 3, 0, Math.PI * 2);
@@ -470,8 +740,20 @@
         minimapCtx.fill();
       });
 
+      // Drifters
+      sim.drifters.forEach((d) => {
+        if (d.state !== 'removed') {
+          const dx = cx + (d.pos[0] - (selectedNight === 2 ? 35 : 0)) * scale;
+          const dy = cy + d.pos[2] * scale;
+          minimapCtx.beginPath();
+          minimapCtx.arc(dx, dy, 3, 0, Math.PI * 2);
+          minimapCtx.fillStyle = '#7209b7';
+          minimapCtx.fill();
+        }
+      });
+
       // Player
-      const px = cx + sim.player.pos[0] * scale;
+      const px = cx + (sim.player.pos[0] - (selectedNight === 2 ? 35 : 0)) * scale;
       const py = cy + sim.player.pos[2] * scale;
       minimapCtx.beginPath();
       minimapCtx.arc(px, py, 4, 0, Math.PI * 2);
@@ -479,11 +761,10 @@
       minimapCtx.fill();
     }
 
-    // Main Game Loop (Sync 60Hz tick with requestAnimationFrame)
+    // Main Game Loop
     let lastTime = performance.now();
     let tickAccumulator = 0;
     const tickTime = 1000 / 60;
-
     let lastMoveDir = [0, -1];
 
     function animate(now) {
@@ -493,53 +774,56 @@
       tickAccumulator += dt;
 
       while (tickAccumulator >= tickTime) {
-        if (sim.state === 'playing') {
-          // Calculate move vector relative to camera look direction
-          let inputForward = 0;
-          let inputRight = 0;
-          if (keys.w) inputForward += 1;
-          if (keys.s) inputForward -= 1;
-          if (keys.a) inputRight -= 1;
-          if (keys.d) inputRight += 1;
+        let doPause = pendingPause;
+        pendingPause = false;
 
-          // Camera is at [px + 10*sin(camYaw), ..., pz + 10*cos(camYaw)] looking at player [px, ..., pz]
-          // Forward (away from camera) = [-sin(camYaw), -cos(camYaw)]
-          // Right = [cos(camYaw), -sin(camYaw)]
-          const sinY = Math.sin(camYaw);
-          const cosY = Math.cos(camYaw);
-          const worldMx = -inputForward * sinY + inputRight * cosY;
-          const worldMz = -inputForward * cosY - inputRight * sinY;
+        let inputForward = 0;
+        let inputRight = 0;
+        if (keys.w) inputForward += 1;
+        if (keys.s) inputForward -= 1;
+        if (keys.a) inputRight -= 1;
+        if (keys.d) inputRight += 1;
 
-          if (Math.abs(worldMx) > 0.01 || Math.abs(worldMz) > 0.01) {
-            lastMoveDir = [worldMx, worldMz];
-          }
+        const sinY = Math.sin(camYaw);
+        const cosY = Math.cos(camYaw);
+        const worldMx = -inputForward * sinY + inputRight * cosY;
+        const worldMz = -inputForward * cosY - inputRight * sinY;
 
-          let doInteract = false;
-          if (keys.interact) {
-            // Pulse interact every 6 ticks (10 times/s) when held down
-            if (sim.tick % 6 === 0) doInteract = true;
-          }
-
-          const events = sim.step({
-            move: [worldMx, worldMz],
-            cam_yaw_deg: 0,
-            interact: doInteract,
-            pulse: keys.pulse
-          });
-
-          // Play Audio SFX
-          events.forEach((e) => {
-            if (e.name === 'mote_picked') sfx.mote();
-            if (e.name === 'deposit') sfx.deposit();
-            if (e.name === 'lantern_lit') sfx.lit();
-            if (e.name === 'pulse') sfx.pulse();
-            if (e.name === 'player_hit') sfx.hit();
-          });
+        if (Math.abs(worldMx) > 0.01 || Math.abs(worldMz) > 0.01) {
+          lastMoveDir = [worldMx, worldMz];
         }
+
+        let doInteract = false;
+        if (keys.interact && sim.tick % 6 === 0) doInteract = true;
+
+        const events = sim.step({
+          move: [worldMx, worldMz],
+          cam_yaw_deg: 0,
+          jump: keys.jump,
+          dash: keys.dash,
+          interact: doInteract,
+          pulse: keys.pulse,
+          pause: doPause
+        });
+
+        events.forEach((e) => {
+          if (e.name === 'mote_picked') sfx.mote();
+          if (e.name === 'deposit') sfx.deposit();
+          if (e.name === 'lantern_lit') sfx.lit();
+          if (e.name === 'dash') sfx.dash();
+          if (e.name === 'pulse') sfx.pulse();
+          if (e.name === 'player_hit') sfx.hit();
+          if (e.name === 'charm_picked') sfx.charm();
+          if (e.name === 'drifter_steal') sfx.steal();
+        });
+
         tickAccumulator -= tickTime;
       }
 
-      // Update 3D Entity Visuals
+      // Pause Overlay
+      document.getElementById('pause-overlay').style.display = sim.state === 'paused' ? 'flex' : 'none';
+
+      // Player Position & Orientation
       playerGroup.position.set(sim.player.pos[0], sim.player.pos[1], sim.player.pos[2]);
       if (Math.abs(lastMoveDir[0]) > 0.01 || Math.abs(lastMoveDir[1]) > 0.01) {
         playerGroup.rotation.y = Math.atan2(lastMoveDir[0], lastMoveDir[1]);
@@ -557,17 +841,17 @@
       });
 
       // Motes
-      const activeMoteIds = new Set(sim.motes.map(m => m.id));
+      const activeMoteIds = new Set(sim.motes.map((m) => m.id));
       for (const [id, mesh] of moteMeshMap) {
         if (!activeMoteIds.has(id)) {
           scene.remove(mesh);
           moteMeshMap.delete(id);
         }
       }
-      sim.motes.forEach(m => {
+      sim.motes.forEach((m) => {
         let mesh = moteMeshMap.get(m.id);
         if (!mesh) {
-          mesh = new THREE.Mesh(moteGeo, moteMat);
+          mesh = new THREE.Mesh(moteGeo, m.kind === 'dropped' ? droppedMoteMat : moteMat);
           scene.add(mesh);
           moteMeshMap.set(m.id, mesh);
         }
@@ -575,14 +859,14 @@
       });
 
       // Shades
-      const activeShadeIds = new Set(sim.shades.map(s => s.id));
+      const activeShadeIds = new Set(sim.shades.map((s) => s.id));
       for (const [id, mesh] of shadeMeshMap) {
         if (!activeShadeIds.has(id)) {
           scene.remove(mesh);
           shadeMeshMap.delete(id);
         }
       }
-      sim.shades.forEach(s => {
+      sim.shades.forEach((s) => {
         let mesh = shadeMeshMap.get(s.id);
         if (!mesh) {
           const shadeMat = new THREE.MeshStandardMaterial({ color: 0x1f1124, roughness: 0.3 });
@@ -599,15 +883,49 @@
         }
       });
 
-      // Camera Follows Player (Third Person)
-      const camDist = 10;
-      const camHeight = 6;
+      // Drifters
+      const activeDrifterIds = new Set(sim.drifters.filter((d) => d.state !== 'removed').map((d) => d.id));
+      for (const [id, mesh] of drifterMeshMap) {
+        if (!activeDrifterIds.has(id)) {
+          scene.remove(mesh);
+          drifterMeshMap.delete(id);
+        }
+      }
+      sim.drifters.forEach((d) => {
+        if (d.state !== 'removed') {
+          let mesh = drifterMeshMap.get(d.id);
+          if (!mesh) {
+            mesh = new THREE.Mesh(drifterGeo, drifterMat);
+            scene.add(mesh);
+            drifterMeshMap.set(d.id, mesh);
+          }
+          mesh.position.set(d.pos[0], d.pos[1] + Math.sin(now * 0.006) * 0.3, d.pos[2]);
+          mesh.rotation.y += 0.08;
+        }
+      });
+
+      // Charms
+      sim.charms.forEach((c) => {
+        let mesh = charmMeshMap.get(c.id);
+        if (!mesh) {
+          mesh = new THREE.Mesh(charmGeo, charmMat);
+          scene.add(mesh);
+          charmMeshMap.set(c.id, mesh);
+        }
+        mesh.visible = c.available;
+        mesh.position.set(c.pos[0], c.pos[1] + 0.8 + Math.sin(now * 0.004) * 0.2, c.pos[2]);
+        mesh.rotation.y += 0.04;
+      });
+
+      // Camera Follows Player
+      const camDist = 11;
+      const camHeight = 6.5;
       camera.position.x = sim.player.pos[0] + camDist * Math.sin(camYaw);
       camera.position.z = sim.player.pos[2] + camDist * Math.cos(camYaw);
       camera.position.y = sim.player.pos[1] + camHeight;
       camera.lookAt(sim.player.pos[0], sim.player.pos[1] + 1.2, sim.player.pos[2]);
 
-      // Update HUD
+      // HUD update
       document.getElementById('hud-flames').innerText = '🔥'.repeat(Math.max(0, sim.player.flames));
       document.getElementById('hud-motes').innerText = `🏮 Đom đóm: ${sim.player.carried} / 10`;
       document.getElementById('hud-score').innerText = `Điểm: ${sim.score}`;
@@ -618,17 +936,58 @@
       timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
       if (sim.time_left_s <= 30) timerEl.classList.add('warning');
 
+      // Skills status
+      const dashEl = document.getElementById('badge-dash');
+      if (sim.player.dash_cd_ticks > 0 && sim.player.charm_ticks <= 0) {
+        dashEl.innerText = `Lướt: ${(sim.player.dash_cd_ticks / 60).toFixed(1)}s`;
+        dashEl.className = 'skill-badge';
+      } else {
+        dashEl.innerText = 'Lướt: Sẵn sàng (Shift)';
+        dashEl.className = 'skill-badge active';
+      }
+
+      const pulseEl = document.getElementById('badge-pulse');
+      if (sim.player.pulse_cd_ticks > 0) {
+        pulseEl.innerText = `Tỏa Sáng: ${(sim.player.pulse_cd_ticks / 60).toFixed(1)}s`;
+        pulseEl.className = 'skill-badge';
+      } else if (sim.player.carried >= 3) {
+        pulseEl.innerText = 'Tỏa Sáng: Sẵn sàng (F)';
+        pulseEl.className = 'skill-badge active';
+      } else {
+        pulseEl.innerText = 'Tỏa Sáng: Cần 3 đom đóm (F)';
+        pulseEl.className = 'skill-badge';
+      }
+
+      const charmEl = document.getElementById('badge-charm');
+      if (sim.player.charm_ticks > 0) {
+        charmEl.style.display = 'block';
+        charmEl.innerText = `⚡ Bùa Gió: ${(sim.player.charm_ticks / 60).toFixed(1)}s`;
+        charmEl.className = 'skill-badge buff';
+      } else {
+        charmEl.style.display = 'none';
+      }
+
+      // Wind indicator
+      const windEl = document.getElementById('wind-indicator');
+      if (sim.wind && sim.wind.active) {
+        windEl.style.display = 'block';
+        windEl.innerText = `🍃 Gió giật hướng ${sim.wind.dir_deg}° (2 m/s)`;
+      } else {
+        windEl.style.display = 'none';
+      }
+
+      // Lanterns status badges
       const lanternsDiv = document.getElementById('hud-lanterns');
-      lanternsDiv.innerHTML = sim.lanterns.map(l => `
+      lanternsDiv.innerHTML = sim.lanterns.map((l) => `
         <div class="lantern-badge ${l.lit ? 'lit' : ''}">
           <b>${l.id}</b>
-          <span>${l.lit ? '✔ SÁNG' : `${l.deposited}/5`}</span>
+          <span>${l.lit ? '✔ SÁNG' : `${l.deposited}/10`}</span>
         </div>
       `).join('');
 
       drawMinimap();
 
-      // Check nearest unlit lantern to display interaction prompt
+      // Nearest Lantern Interaction Prompt
       let nearestL = null;
       let minLD = Infinity;
       sim.lanterns.forEach((l) => {
@@ -640,14 +999,14 @@
       });
 
       const promptEl = document.getElementById('interact-prompt');
-      if (nearestL && minLD <= 3.5 && !nearestL.lit) {
+      if (nearestL && minLD <= 2.8 && !nearestL.lit) {
         promptEl.style.display = 'block';
         if (sim.player.carried > 0) {
-          promptEl.innerHTML = `✨ Nhấn <span style="background:#ffd166; color:#0c1223; padding:2px 8px; border-radius:4px;">E</span> để Nạp Đom Đóm vào <b>${nearestL.id}</b> (${nearestL.deposited}/5)<br><span style="font-size:13px; font-weight:normal; color:#ffd166;">(Đang có ${sim.player.carried} đom đóm)</span>`;
+          promptEl.innerHTML = `✨ Nhấn <span style="background:#ffd166; color:#0c1223; padding:2px 8px; border-radius:4px;">E</span> để Nạp Đom Đóm vào <b>${nearestL.id}</b> (${nearestL.deposited}/10)<br><span style="font-size:13px; font-weight:normal; color:#ffd166;">(Đang mang ${sim.player.carried} đom đóm)</span>`;
           promptEl.style.borderColor = '#ffd166';
           promptEl.style.color = '#ffd166';
         } else {
-          promptEl.innerHTML = `⚠️ Đèn <b>${nearestL.id}</b> (${nearestL.deposited}/5) — Bạn đang có <b>0</b> đom đóm!<br><span style="font-size:13px; font-weight:normal; color:#bbb;">(Hãy chạy nhặt đom đóm xanh phát sáng trước)</span>`;
+          promptEl.innerHTML = `⚠️ Đèn <b>${nearestL.id}</b> (${nearestL.deposited}/10) — Bạn đang có <b>0</b> đom đóm!<br><span style="font-size:13px; font-weight:normal; color:#bbb;">(Hãy nhặt đom đóm xanh phát sáng trước)</span>`;
           promptEl.style.borderColor = '#ef476f';
           promptEl.style.color = '#ef476f';
         }
@@ -655,8 +1014,8 @@
         promptEl.style.display = 'none';
       }
 
-      // Check Game Over Modal
-      if (sim.state !== 'playing') {
+      // Modal
+      if (sim.state === 'won' || sim.state === 'lost') {
         const modal = document.getElementById('modal');
         const title = document.getElementById('modal-title');
         const desc = document.getElementById('modal-desc');
@@ -664,7 +1023,7 @@
         if (sim.state === 'won') {
           title.innerText = 'CHIẾN THẮNG!';
           title.style.color = '#ffd166';
-          desc.innerText = `Bạn đã thắp sáng cả 5 Đèn Lồng Lớn! Tổng điểm: ${sim.score}`;
+          desc.innerText = `Bạn đã thắp sáng toàn bộ Đèn Lồng trong ${nightTitles[selectedNight]}! Tổng điểm: ${sim.score}`;
         } else {
           title.innerText = 'THẤT BẠI!';
           title.style.color = '#ef476f';

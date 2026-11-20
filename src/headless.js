@@ -139,13 +139,15 @@ export function runHeadless(args) {
     cam_yaw_deg: 0,
     jump: false,
     interact: false,
-    pulse: false
+    pulse: false,
+    dash: false,
+    pause: false
   };
 
   let lastSnapshotTick = 0;
 
   for (let t = 0; t < opts.ticks; t++) {
-    if (sim.state !== 'playing') {
+    if (sim.state === 'won' || sim.state === 'lost') {
       break;
     }
 
@@ -156,6 +158,14 @@ export function runHeadless(args) {
       currentInput.jump = !!f.jump;
       currentInput.interact = !!f.interact;
       currentInput.pulse = !!f.pulse;
+      currentInput.dash = !!f.dash;
+      currentInput.pause = !!f.pause;
+    } else {
+      currentInput.jump = false;
+      currentInput.interact = false;
+      currentInput.pulse = false;
+      currentInput.dash = false;
+      currentInput.pause = false;
     }
 
     const events = sim.step(currentInput);

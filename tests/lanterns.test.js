@@ -11,7 +11,7 @@ test('Deposit motes into nearest unlit lantern on interact edge', () => {
     }
   });
 
-  // L1 is at [0, 0, 25], dist is 1m (<= interact_radius 3m)
+  // L1 is at [0, 0, 25], dist is 1m (<= interact_radius 2.0m)
   const events = sim.step({ interact: true });
   assert.equal(sim.player.carried, 0);
 
@@ -21,10 +21,10 @@ test('Deposit motes into nearest unlit lantern on interact edge', () => {
   assert.equal(events.some((e) => e.name === 'deposit'), true);
 });
 
-test('Lantern lights up and scores +100 when deposited reaches 5', () => {
+test('Lantern lights up and scores +100 when deposited reaches lantern_cost (10)', () => {
   const sim = new Sim({
     scenario: {
-      player: { pos: [0, 0, 24], carried: 5 },
+      player: { pos: [0, 0, 24], carried: 10 },
       random_motes: false,
       random_shades: false
     }
@@ -32,7 +32,7 @@ test('Lantern lights up and scores +100 when deposited reaches 5', () => {
 
   const events = sim.step({ interact: true });
   const l1 = sim.lanterns.find((l) => l.id === 'L1');
-  assert.equal(l1.deposited, 5);
+  assert.equal(l1.deposited, 10);
   assert.equal(l1.lit, true);
   assert.equal(sim.score, 100);
   assert.equal(events.some((e) => e.name === 'lantern_lit'), true);
