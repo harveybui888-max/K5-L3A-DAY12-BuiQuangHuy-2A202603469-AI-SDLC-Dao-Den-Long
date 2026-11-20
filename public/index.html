@@ -191,6 +191,25 @@
     </div>
   </div>
 
+  <div id="interact-prompt" style="
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 16, 32, 0.92);
+    border: 2px solid #ffd166;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffd166;
+    box-shadow: 0 0 25px rgba(255, 209, 102, 0.4);
+    display: none;
+    z-index: 50;
+    pointer-events: none;
+    text-align: center;
+  "></div>
+
   <div id="modal">
     <h1 id="modal-title">CHIẾN THẮNG!</h1>
     <p id="modal-desc">Bạn đã thắp sáng toàn bộ Đèn Lồng Lớn trên Đảo Bến!</p>
@@ -333,6 +352,14 @@
       cage.position.y = 2.8;
       g.add(cage);
 
+      // Interaction Zone Ring on Ground (3.0m)
+      const ringGeo = new THREE.RingGeometry(2.9, 3.05, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd166, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.05;
+      g.add(ring);
+
       // Light core
       const coreGeo = new THREE.SphereGeometry(0.45, 16, 16);
       const coreMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
@@ -365,22 +392,24 @@
 
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
-      if (k === 'w') keys.w = true;
-      if (k === 's') keys.s = true;
-      if (k === 'a') keys.a = true;
-      if (k === 'd') keys.d = true;
-      if (k === 'e') keys.interact = true;
-      if (k === 'f' || k === ' ') keys.pulse = true;
+      const code = e.code;
+      if (k === 'w' || code === 'KeyW' || code === 'ArrowUp') keys.w = true;
+      if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = true;
+      if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = true;
+      if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = true;
+      if (k === 'e' || code === 'KeyE') keys.interact = true;
+      if (k === 'f' || code === 'KeyF' || code === 'Space' || k === ' ') keys.pulse = true;
     });
 
     window.addEventListener('keyup', (e) => {
       const k = e.key.toLowerCase();
-      if (k === 'w') keys.w = false;
-      if (k === 's') keys.s = false;
-      if (k === 'a') keys.a = false;
-      if (k === 'd') keys.d = false;
-      if (k === 'e') keys.interact = false;
-      if (k === 'f' || k === ' ') keys.pulse = false;
+      const code = e.code;
+      if (k === 'w' || code === 'KeyW' || code === 'ArrowUp') keys.w = false;
+      if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = false;
+      if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = false;
+      if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = false;
+      if (k === 'e' || code === 'KeyE') keys.interact = false;
+      if (k === 'f' || code === 'KeyF' || code === 'Space' || k === ' ') keys.pulse = false;
     });
 
     let isMouseDown = false;
@@ -485,10 +514,16 @@
             lastMoveDir = [worldMx, worldMz];
           }
 
+          let doInteract = false;
+          if (keys.interact) {
+            // Pulse interact every 6 ticks (10 times/s) when held down
+            if (sim.tick % 6 === 0) doInteract = true;
+          }
+
           const events = sim.step({
             move: [worldMx, worldMz],
             cam_yaw_deg: 0,
-            interact: keys.interact,
+            interact: doInteract,
             pulse: keys.pulse
           });
 
@@ -592,6 +627,33 @@
       `).join('');
 
       drawMinimap();
+
+      // Check nearest unlit lantern to display interaction prompt
+      let nearestL = null;
+      let minLD = Infinity;
+      sim.lanterns.forEach((l) => {
+        const d = Math.sqrt((sim.player.pos[0] - l.pos[0]) ** 2 + (sim.player.pos[2] - l.pos[2]) ** 2);
+        if (d < minLD) {
+          minLD = d;
+          nearestL = l;
+        }
+      });
+
+      const promptEl = document.getElementById('interact-prompt');
+      if (nearestL && minLD <= 3.5 && !nearestL.lit) {
+        promptEl.style.display = 'block';
+        if (sim.player.carried > 0) {
+          promptEl.innerHTML = `✨ Nhấn <span style="background:#ffd166; color:#0c1223; padding:2px 8px; border-radius:4px;">E</span> để Nạp Đom Đóm vào <b>${nearestL.id}</b> (${nearestL.deposited}/5)<br><span style="font-size:13px; font-weight:normal; color:#ffd166;">(Đang có ${sim.player.carried} đom đóm)</span>`;
+          promptEl.style.borderColor = '#ffd166';
+          promptEl.style.color = '#ffd166';
+        } else {
+          promptEl.innerHTML = `⚠️ Đèn <b>${nearestL.id}</b> (${nearestL.deposited}/5) — Bạn đang có <b>0</b> đom đóm!<br><span style="font-size:13px; font-weight:normal; color:#bbb;">(Hãy chạy nhặt đom đóm xanh phát sáng trước)</span>`;
+          promptEl.style.borderColor = '#ef476f';
+          promptEl.style.color = '#ef476f';
+        }
+      } else {
+        promptEl.style.display = 'none';
+      }
 
       // Check Game Over Modal
       if (sim.state !== 'playing') {
