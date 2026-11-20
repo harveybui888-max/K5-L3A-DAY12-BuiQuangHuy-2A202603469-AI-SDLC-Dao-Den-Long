@@ -103,10 +103,19 @@ export function runHeadless(args) {
     process.exit(2);
   }
 
+  let tuning = undefined;
+  try {
+    const contractPath = path.resolve('game.contract.json');
+    if (fs.existsSync(contractPath)) {
+      tuning = JSON.parse(fs.readFileSync(contractPath, 'utf8')).tuning;
+    }
+  } catch (e) {}
+
   const sim = new Sim({
     seed: opts.seed,
     night: opts.night,
-    scenario
+    scenario,
+    tuning
   });
 
   const outputLines = [];
