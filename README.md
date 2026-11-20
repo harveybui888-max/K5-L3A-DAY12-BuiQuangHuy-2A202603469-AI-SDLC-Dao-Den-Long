@@ -3,7 +3,7 @@
 > **Học phần**: Day 12 — AI SDLC, VinUni AI20K  
 > **Tác giả**: Bùi Quang Huy (MSSV: `2A202603469`)  
 > **Mốc phát hành**: Phase 4 — Phát hành chính thức v1.0.0 · Test Contract v1.3  
-> **Video Demo**: [`docs/demo/demo.mp4`](docs/demo/demo.mp4) (hoặc xem tại mục [GitHub Releases v1.0.0](../../releases/tag/v1.0.0))
+> **Video Demo**: [`docs/demo/demo.mp4`](docs/demo/demo.mp4) (hoặc xem tại mục [GitHub Releases v1.0.0](https://github.com/harveybui888-max/K5-L3A-Day12-BuiQuangHuy-2A202603469-AI-SDLC/releases/tag/v1.0.0))
 
 ---
 
@@ -23,8 +23,8 @@
 Clone repo sạch trên bất kỳ máy nào (Windows, macOS, Linux) và chạy đúng 3 lệnh sau:
 
 ```bash
-git clone https://github.com/huybui-vinuni/dao-den-long.git
-cd dao-den-long
+git clone https://github.com/harveybui888-max/K5-L3A-Day12-BuiQuangHuy-2A202603469-AI-SDLC.git
+cd K5-L3A-Day12-BuiQuangHuy-2A202603469-AI-SDLC
 npm install && npm start
 ```
 

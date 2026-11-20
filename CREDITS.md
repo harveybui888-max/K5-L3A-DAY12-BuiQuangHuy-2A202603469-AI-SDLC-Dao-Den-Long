@@ -1,4 +1,4 @@
-﻿# Ghi nhận Đóng góp & Bản quyền (Credits)
+# Ghi nhận Đóng góp & Bản quyền (Credits)
 
 Dự án: **Đảo Đèn Lồng (Lantern Island 3D)** — Phát hành v1.0.0 (Phase 4)
 Tác giả: **Bùi Quang Huy** (MSSV: 2A202603469) — VinUni AI20K
