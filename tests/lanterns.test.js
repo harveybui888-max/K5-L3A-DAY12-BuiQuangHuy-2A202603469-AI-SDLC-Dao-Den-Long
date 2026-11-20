@@ -18,10 +18,11 @@ test('Deposit motes into nearest unlit lantern on interact edge', () => {
   const l1 = sim.lanterns.find((l) => l.id === 'L1');
   assert.equal(l1.deposited, 3);
   assert.equal(l1.lit, false);
+  assert.equal(sim.score, 15); // 3 motes * 5 = +15 in Phase 3
   assert.equal(events.some((e) => e.name === 'deposit'), true);
 });
 
-test('Lantern lights up and scores +100 when deposited reaches lantern_cost (10)', () => {
+test('Lantern lights up and scores +150 (+5/mote * 10 + 100 first light) when deposited reaches lantern_cost (10)', () => {
   const sim = new Sim({
     scenario: {
       player: { pos: [0, 0, 24], carried: 10 },
@@ -34,6 +35,6 @@ test('Lantern lights up and scores +100 when deposited reaches lantern_cost (10)
   const l1 = sim.lanterns.find((l) => l.id === 'L1');
   assert.equal(l1.deposited, 10);
   assert.equal(l1.lit, true);
-  assert.equal(sim.score, 100);
+  assert.equal(sim.score, 150); // 10 * 5 + 100 = 150
   assert.equal(events.some((e) => e.name === 'lantern_lit'), true);
 });

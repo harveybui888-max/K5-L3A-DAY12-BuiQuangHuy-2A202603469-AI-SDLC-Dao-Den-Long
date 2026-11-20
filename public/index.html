@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đảo Đèn Lồng 3D — Lantern Island (Phase 2)</title>
+  <title>Đảo Đèn Lồng 3D — Lantern Island (Phase 3: Đèn cạn dầu)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
@@ -72,6 +72,9 @@
       color: #ef476f;
       animation: pulse-red 1s infinite;
     }
+    body.colorblind .timer.warning {
+      color: #ffffff !important;
+    }
     .score {
       font-size: 18px;
       color: #118ab2;
@@ -95,7 +98,7 @@
       gap: 8px;
       margin-top: 8px;
       flex-wrap: wrap;
-      max-width: 480px;
+      max-width: 520px;
     }
     .lantern-badge {
       background: rgba(20, 25, 45, 0.85);
@@ -107,12 +110,22 @@
       flex-direction: column;
       align-items: center;
       transition: all 0.3s;
+      min-width: 58px;
     }
     .lantern-badge.lit {
       border-color: #ffd166;
       background: rgba(255, 209, 102, 0.2);
       color: #ffd166;
       box-shadow: 0 0 12px rgba(255, 209, 102, 0.4);
+    }
+    .lantern-badge.low-fuel {
+      border-color: #ef476f;
+      color: #ef476f;
+      animation: pulse-red 1s infinite;
+    }
+    body.colorblind .lantern-badge.low-fuel {
+      border-color: #ffffff !important;
+      color: #ffffff !important;
     }
     .hud-skills {
       display: flex;
@@ -155,13 +168,19 @@
       color: #fff;
       font-weight: bold;
     }
-    #night-selector {
+    #top-controls {
       pointer-events: auto;
       display: flex;
+      flex-direction: column;
       gap: 6px;
+      align-items: flex-end;
       margin-top: 6px;
     }
-    #night-selector button {
+    #night-selector {
+      display: flex;
+      gap: 6px;
+    }
+    #night-selector button, .toggle-btn {
       background: #1e293b;
       color: #cbd5e1;
       border: 1px solid #475569;
@@ -171,7 +190,7 @@
       cursor: pointer;
       font-weight: 600;
     }
-    #night-selector button.active {
+    #night-selector button.active, .toggle-btn.active {
       background: #ffd166;
       color: #0f172a;
       border-color: #ffd166;
@@ -271,15 +290,18 @@
         <div class="lanterns-status" id="hud-lanterns"></div>
       </div>
       <div class="hud-card">
-        <div class="timer" id="hud-timer">05:00</div>
+        <div class="timer" id="hud-timer">04:00</div>
         <div id="wind-indicator" style="font-size:12px; color:#64ffda; text-align:center; display:none; margin-top:4px;">🍃 Gió giật 2 m/s</div>
       </div>
       <div class="hud-card">
         <div class="score" id="hud-score">Điểm: 0</div>
-        <div id="night-selector">
-          <button id="btn-night-1" class="active" onclick="switchNight(1)">Đêm 1</button>
-          <button id="btn-night-2" onclick="switchNight(2)">Đêm 2</button>
-          <button id="btn-night-3" onclick="switchNight(3)">Đêm 3</button>
+        <div id="top-controls">
+          <div id="night-selector">
+            <button id="btn-night-1" class="active" onclick="switchNight(1)">Đêm 1</button>
+            <button id="btn-night-2" onclick="switchNight(2)">Đêm 2</button>
+            <button id="btn-night-3" onclick="switchNight(3)">Đêm 3</button>
+          </div>
+          <button id="btn-colorblind" class="toggle-btn" onclick="toggleColorblind()">🎨 Bảng màu dễ phân biệt</button>
         </div>
       </div>
     </div>
@@ -287,7 +309,7 @@
     <div class="hud-bottom">
       <div class="hud-card controls-hint">
         <p><span>W A S D</span> Di chuyển | <span>Space</span> Nhảy | <span>Shift</span> Lướt (Dash)</p>
-        <p><span>E</span> Nạp Đèn Lớn (10 đom đóm) | <span>F</span> Tỏa Sáng (3 đom đóm)</p>
+        <p><span>E</span> Nạp / Châm Dầu Đèn Lớn | <span>F</span> Tỏa Sáng (3 đom đóm)</p>
         <p><span>P / Esc</span> Tạm dừng | <span>Kéo chuột</span> Xoay camera</p>
       </div>
       <canvas id="minimap" width="140" height="140"></canvas>
@@ -321,13 +343,35 @@
 
   <div id="modal">
     <h1 id="modal-title">CHIẾN THẮNG!</h1>
-    <p id="modal-desc">Bạn đã thắp sáng toàn bộ Đèn Lồng Lớn!</p>
+    <p id="modal-desc">Bạn đã giữ đảo sáng tới bình minh!</p>
     <button onclick="location.reload()">Chơi Lại</button>
   </div>
 
   <script type="module">
     import { Sim } from '/src/sim/sim.js';
     import { MAPS } from '/src/sim/constants.js';
+
+    // Colorblind Mode Setting
+    let isColorblind = localStorage.getItem('lantern_island_colorblind') === 'true';
+    function applyColorblindUI() {
+      const btn = document.getElementById('btn-colorblind');
+      if (isColorblind) {
+        document.body.classList.add('colorblind');
+        btn.classList.add('active');
+        btn.innerText = '🎨 Bảng màu dễ phân biệt: BẬT';
+      } else {
+        document.body.classList.remove('colorblind');
+        btn.classList.remove('active');
+        btn.innerText = '🎨 Bảng màu dễ phân biệt: TẮT';
+      }
+    }
+    applyColorblindUI();
+
+    window.toggleColorblind = function() {
+      isColorblind = !isColorblind;
+      localStorage.setItem('lantern_island_colorblind', isColorblind ? 'true' : 'false');
+      applyColorblindUI();
+    };
 
     // Parse URL param for night
     const urlParams = new URLSearchParams(window.location.search);
@@ -338,7 +382,6 @@
       window.location.search = `?night=${n}`;
     };
 
-    // Update active button
     [1, 2, 3].forEach((n) => {
       const btn = document.getElementById(`btn-night-${n}`);
       if (btn) {
@@ -373,11 +416,13 @@
     const sfx = {
       mote: () => playTone(880, 'sine', 0.18, 0.08),
       deposit: () => playTone(440, 'triangle', 0.25, 0.1),
+      refuel: () => playTone(587.33, 'triangle', 0.2, 0.1),
       lit: () => {
         playTone(523.25, 'sine', 0.4, 0.15);
         setTimeout(() => playTone(659.25, 'sine', 0.4, 0.15), 120);
         setTimeout(() => playTone(783.99, 'sine', 0.5, 0.2), 240);
       },
+      out: () => playTone(130, 'sawtooth', 0.5, 0.2),
       dash: () => playTone(300, 'sine', 0.15, 0.15),
       pulse: () => playTone(140, 'sawtooth', 0.45, 0.2),
       hit: () => playTone(85, 'sawtooth', 0.4, 0.25),
@@ -411,7 +456,7 @@
     moonLight.position.set(30, 60, 30);
     scene.add(moonLight);
 
-    // Ocean / Cloud Sea Plane
+    // Ocean Plane
     const oceanGeo = new THREE.PlaneGeometry(500, 500);
     const oceanMat = new THREE.MeshStandardMaterial({ color: 0x030712, roughness: 0.15, metalness: 0.8 });
     const ocean = new THREE.Mesh(oceanGeo, oceanMat);
@@ -420,17 +465,13 @@
     scene.add(ocean);
 
     // Environment Meshes (Terrain based on Night)
-    const mapProps = [];
-
     if (selectedNight === 1) {
-      // Island r=40
       const islandGeo = new THREE.CylinderGeometry(40, 42, 2, 64);
       const islandMat = new THREE.MeshStandardMaterial({ color: 0x142018, roughness: 0.9 });
       const island = new THREE.Mesh(islandGeo, islandMat);
       island.position.y = -1;
       scene.add(island);
 
-      // Border Stones
       for (let a = 0; a < Math.PI * 2; a += 0.25) {
         const stoneGeo = new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.4);
         const stoneMat = new THREE.MeshStandardMaterial({ color: 0x222a30, roughness: 0.8 });
@@ -439,27 +480,23 @@
         scene.add(stone);
       }
     } else if (selectedNight === 2) {
-      // Island A: r=28 at (0,0)
       const islandAGeo = new THREE.CylinderGeometry(28, 30, 2, 48);
       const islandMat = new THREE.MeshStandardMaterial({ color: 0x16241b, roughness: 0.9 });
       const islandA = new THREE.Mesh(islandAGeo, islandMat);
       islandA.position.set(0, -1, 0);
       scene.add(islandA);
 
-      // Island B: r=28 at (70,0)
       const islandBGeo = new THREE.CylinderGeometry(28, 30, 2, 48);
       const islandB = new THREE.Mesh(islandBGeo, islandMat);
       islandB.position.set(70, -1, 0);
       scene.add(islandB);
 
-      // Bamboo Bridge: x in [26, 44], z in [-2, 2] (length 18m, width 4m)
       const bridgeGeo = new THREE.BoxGeometry(18, 0.4, 4);
       const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.8 });
       const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
       bridge.position.set(35, -0.2, 0);
       scene.add(bridge);
 
-      // Bamboo planks visual
       for (let bx = 26.5; bx <= 43.5; bx += 1.2) {
         const plankGeo = new THREE.CylinderGeometry(0.12, 0.12, 4.2, 8);
         plankGeo.rotateZ(Math.PI / 2);
@@ -469,35 +506,30 @@
         scene.add(plank);
       }
     } else if (selectedNight === 3) {
-      // Tier 0: r=45 at Y=0
       const t0Geo = new THREE.CylinderGeometry(45, 47, 2, 64);
       const t0Mat = new THREE.MeshStandardMaterial({ color: 0x131f18, roughness: 0.9 });
       const t0 = new THREE.Mesh(t0Geo, t0Mat);
       t0.position.set(0, -1, 0);
       scene.add(t0);
 
-      // Tier 1: Annulus r in [12, 24] with z > 0 at Y=3
       const t1Geo = new THREE.CylinderGeometry(24, 24, 3, 32, 1, false, 0, Math.PI);
       const t1Mat = new THREE.MeshStandardMaterial({ color: 0x1e2f24, roughness: 0.85 });
       const t1 = new THREE.Mesh(t1Geo, t1Mat);
       t1.position.set(0, 1.5, 0);
       scene.add(t1);
 
-      // Tier 2: Disc r=8 at center, Y=6
       const t2Geo = new THREE.CylinderGeometry(8, 8, 6, 32);
       const t2Mat = new THREE.MeshStandardMaterial({ color: 0x273b2d, roughness: 0.8 });
       const t2 = new THREE.Mesh(t2Geo, t2Mat);
       t2.position.set(0, 3, 0);
       scene.add(t2);
 
-      // Bell Tower at center: cylinder r=2m, height 8m on top of tier 2 (Y=6..14)
       const towerGeo = new THREE.CylinderGeometry(2, 2.2, 8, 16);
       const towerMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 });
       const tower = new THREE.Mesh(towerGeo, towerMat);
       tower.position.set(0, 10, 0);
       scene.add(tower);
 
-      // Bell Tower roof
       const roofGeo = new THREE.ConeGeometry(3.2, 2.5, 16);
       const roofMat = new THREE.MeshStandardMaterial({ color: 0x991b1b });
       const roof = new THREE.Mesh(roofGeo, roofMat);
@@ -558,7 +590,7 @@
 
     scene.add(playerGroup);
 
-    // Lanterns
+    // Lanterns with 3D Fuel Gauges
     const lanternMeshes = [];
     sim.lanterns.forEach((l) => {
       const g = new THREE.Group();
@@ -574,7 +606,7 @@
       cage.position.y = 2.8;
       g.add(cage);
 
-      // 6.0m Safe Zone Ring on Ground
+      // Safe Zone Ring (6.0m)
       const ringGeo = new THREE.RingGeometry(5.9, 6.1, 48);
       const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd166, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
       const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -592,9 +624,23 @@
       light.position.y = 2.8;
       g.add(light);
 
+      // Fuel Bar Background
+      const fuelBgGeo = new THREE.PlaneGeometry(1.4, 0.2);
+      const fuelBgMat = new THREE.MeshBasicMaterial({ color: 0x111111, side: THREE.DoubleSide });
+      const fuelBg = new THREE.Mesh(fuelBgGeo, fuelBgMat);
+      fuelBg.position.set(0, 3.8, 0);
+      g.add(fuelBg);
+
+      // Fuel Bar Fill
+      const fuelFillGeo = new THREE.PlaneGeometry(1.36, 0.16);
+      const fuelFillMat = new THREE.MeshBasicMaterial({ color: 0x06d6a0, side: THREE.DoubleSide });
+      const fuelFill = new THREE.Mesh(fuelFillGeo, fuelFillMat);
+      fuelFill.position.set(0, 3.8, 0.01);
+      g.add(fuelFill);
+
       g.position.set(l.pos[0], l.pos[1], l.pos[2]);
       scene.add(g);
-      lanternMeshes.push({ group: g, core, light, data: l });
+      lanternMeshes.push({ group: g, cage, core, light, ring, fuelBg, fuelFill, data: l });
     });
 
     // Motes Meshes Map
@@ -685,14 +731,12 @@
         minimapCtx.strokeStyle = 'rgba(255, 209, 102, 0.3)';
         minimapCtx.stroke();
       } else if (selectedNight === 2) {
-        // Islands A and B
         const offset = 35 * scale;
         minimapCtx.beginPath();
         minimapCtx.arc(cx - offset, cy, 28 * scale, 0, Math.PI * 2);
         minimapCtx.arc(cx + offset, cy, 28 * scale, 0, Math.PI * 2);
         minimapCtx.fillStyle = 'rgba(20, 32, 24, 0.9)';
         minimapCtx.fill();
-        // Bridge
         minimapCtx.fillStyle = '#5c4033';
         minimapCtx.fillRect(cx - 9 * scale, cy - 2 * scale, 18 * scale, 4 * scale);
       } else if (selectedNight === 3) {
@@ -700,25 +744,27 @@
         minimapCtx.arc(cx, cy, 45 * scale, 0, Math.PI * 2);
         minimapCtx.fillStyle = 'rgba(19, 31, 24, 0.9)';
         minimapCtx.fill();
-        // Tier 1
         minimapCtx.beginPath();
         minimapCtx.arc(cx, cy, 24 * scale, Math.PI, 0);
         minimapCtx.fillStyle = 'rgba(30, 47, 36, 0.9)';
         minimapCtx.fill();
-        // Tier 2
         minimapCtx.beginPath();
         minimapCtx.arc(cx, cy, 8 * scale, 0, Math.PI * 2);
         minimapCtx.fillStyle = 'rgba(39, 59, 45, 0.9)';
         minimapCtx.fill();
       }
 
-      // Lanterns
+      // Lanterns on minimap
       sim.lanterns.forEach((l) => {
         const lx = cx + (l.pos[0] - (selectedNight === 2 ? 35 : 0)) * scale;
         const ly = cy + l.pos[2] * scale;
         minimapCtx.beginPath();
         minimapCtx.arc(lx, ly, 3.5, 0, Math.PI * 2);
-        minimapCtx.fillStyle = l.lit ? '#ffd166' : '#555';
+        if (l.lit) {
+          minimapCtx.fillStyle = l.fuel < 30 ? (isColorblind ? '#ffffff' : '#ef476f') : '#ffd166';
+        } else {
+          minimapCtx.fillStyle = '#555';
+        }
         minimapCtx.fill();
       });
 
@@ -736,7 +782,9 @@
         const sy = cy + s.pos[2] * scale;
         minimapCtx.beginPath();
         minimapCtx.arc(sx, sy, 3, 0, Math.PI * 2);
-        minimapCtx.fillStyle = s.state === 'stunned' ? '#00b4d8' : '#e63946';
+        if (s.state === 'stunned') minimapCtx.fillStyle = '#00b4d8';
+        else if (s.state === 'drain') minimapCtx.fillStyle = '#ff006e';
+        else minimapCtx.fillStyle = isColorblind ? '#00b3ff' : '#e63946';
         minimapCtx.fill();
       });
 
@@ -809,7 +857,9 @@
         events.forEach((e) => {
           if (e.name === 'mote_picked') sfx.mote();
           if (e.name === 'deposit') sfx.deposit();
+          if (e.name === 'refuel') sfx.refuel();
           if (e.name === 'lantern_lit') sfx.lit();
+          if (e.name === 'lantern_out') sfx.out();
           if (e.name === 'dash') sfx.dash();
           if (e.name === 'pulse') sfx.pulse();
           if (e.name === 'player_hit') sfx.hit();
@@ -829,14 +879,40 @@
         playerGroup.rotation.y = Math.atan2(lastMoveDir[0], lastMoveDir[1]);
       }
 
-      // Lanterns
-      lanternMeshes.forEach(({ core, light, data }) => {
+      // Lanterns visual & fuel gauges
+      const blinkOn = Math.sin(now * 0.006) > 0;
+      lanternMeshes.forEach(({ group, cage, core, light, ring, fuelBg, fuelFill, data }) => {
+        // Face camera for fuel gauge
+        fuelBg.rotation.y = camYaw;
+        fuelFill.rotation.y = camYaw;
+
         if (data.lit) {
-          core.material.color.setHex(0xffea00);
-          light.intensity = 2.5;
+          fuelBg.visible = true;
+          fuelFill.visible = true;
+          const ratio = Math.max(0, Math.min(1, data.fuel / 100));
+          fuelFill.scale.x = ratio;
+          fuelFill.position.x = -0.68 * (1 - ratio);
+
+          const isLow = data.fuel < 30;
+          if (isLow) {
+            fuelFill.material.color.setHex(isColorblind ? 0xffffff : 0xef476f);
+            core.material.color.setHex(blinkOn ? (isColorblind ? 0xffffff : 0xffea00) : 0x334155);
+            light.intensity = blinkOn ? 2.5 : 0.5;
+            ring.visible = false; // Safe zone disabled when fuel < 30!
+          } else {
+            fuelFill.material.color.setHex(0x06d6a0);
+            core.material.color.setHex(0xffea00);
+            light.intensity = 2.5;
+            ring.visible = true; // Safe zone active!
+          }
+          cage.scale.y = 1.0;
         } else {
+          fuelBg.visible = false;
+          fuelFill.visible = false;
           core.material.color.setHex(0x334155);
           light.intensity = 0;
+          ring.visible = false;
+          cage.scale.y = 0.8; // Deflated by 20% when unlit!
         }
       });
 
@@ -869,7 +945,10 @@
       sim.shades.forEach((s) => {
         let mesh = shadeMeshMap.get(s.id);
         if (!mesh) {
-          const shadeMat = new THREE.MeshStandardMaterial({ color: 0x1f1124, roughness: 0.3 });
+          const shadeMat = new THREE.MeshStandardMaterial({
+            color: isColorblind ? 0x00b3ff : 0x1f1124,
+            roughness: 0.3
+          });
           mesh = new THREE.Mesh(shadeGeo, shadeMat);
           scene.add(mesh);
           shadeMeshMap.set(s.id, mesh);
@@ -878,8 +957,11 @@
         if (s.state === 'stunned') {
           mesh.material.color.setHex(0x0077b6);
           mesh.rotation.y += 0.2;
+        } else if (s.state === 'drain') {
+          mesh.material.color.setHex(0xff006e);
+          mesh.rotation.y += 0.05;
         } else {
-          mesh.material.color.setHex(0x1f1124);
+          mesh.material.color.setHex(isColorblind ? 0x00b3ff : 0x1f1124);
         }
       });
 
@@ -925,9 +1007,9 @@
       camera.position.y = sim.player.pos[1] + camHeight;
       camera.lookAt(sim.player.pos[0], sim.player.pos[1] + 1.2, sim.player.pos[2]);
 
-      // HUD update
+      // HUD updates
       document.getElementById('hud-flames').innerText = '🔥'.repeat(Math.max(0, sim.player.flames));
-      document.getElementById('hud-motes').innerText = `🏮 Đom đóm: ${sim.player.carried} / 10`;
+      document.getElementById('hud-motes').innerText = `🏮 Đom đóm: ${sim.player.carried} / ${sim.player.capacity}`;
       document.getElementById('hud-score').innerText = `Điểm: ${sim.score}`;
 
       const m = Math.floor(sim.time_left_s / 60);
@@ -976,14 +1058,25 @@
         windEl.style.display = 'none';
       }
 
-      // Lanterns status badges
+      // Lanterns status badges in HUD
       const lanternsDiv = document.getElementById('hud-lanterns');
-      lanternsDiv.innerHTML = sim.lanterns.map((l) => `
-        <div class="lantern-badge ${l.lit ? 'lit' : ''}">
-          <b>${l.id}</b>
-          <span>${l.lit ? '✔ SÁNG' : `${l.deposited}/10`}</span>
-        </div>
-      `).join('');
+      lanternsDiv.innerHTML = sim.lanterns.map((l) => {
+        let badgeClass = 'lantern-badge';
+        let statusText = '';
+        if (l.lit) {
+          badgeClass += ' lit';
+          if (l.fuel < 30) badgeClass += ' low-fuel';
+          statusText = `${Math.round(l.fuel)}% fuel`;
+        } else {
+          statusText = l.ever_lit ? `${l.deposited}/5 (thắp lại)` : `${l.deposited}/10`;
+        }
+        return `
+          <div class="${badgeClass}">
+            <b>${l.id}</b>
+            <span>${l.lit && l.fuel < 30 ? '⚠ ' : ''}${statusText}</span>
+          </div>
+        `;
+      }).join('');
 
       drawMinimap();
 
@@ -991,24 +1084,43 @@
       let nearestL = null;
       let minLD = Infinity;
       sim.lanterns.forEach((l) => {
-        const d = Math.sqrt((sim.player.pos[0] - l.pos[0]) ** 2 + (sim.player.pos[2] - l.pos[2]) ** 2);
-        if (d < minLD) {
-          minLD = d;
-          nearestL = l;
+        const canReceive = !l.lit || (l.lit && l.fuel < 100);
+        if (canReceive) {
+          const d = Math.sqrt((sim.player.pos[0] - l.pos[0]) ** 2 + (sim.player.pos[2] - l.pos[2]) ** 2);
+          if (d < minLD) {
+            minLD = d;
+            nearestL = l;
+          }
         }
       });
 
       const promptEl = document.getElementById('interact-prompt');
-      if (nearestL && minLD <= 2.8 && !nearestL.lit) {
+      if (nearestL && minLD <= 2.8) {
         promptEl.style.display = 'block';
-        if (sim.player.carried > 0) {
-          promptEl.innerHTML = `✨ Nhấn <span style="background:#ffd166; color:#0c1223; padding:2px 8px; border-radius:4px;">E</span> để Nạp Đom Đóm vào <b>${nearestL.id}</b> (${nearestL.deposited}/10)<br><span style="font-size:13px; font-weight:normal; color:#ffd166;">(Đang mang ${sim.player.carried} đom đóm)</span>`;
-          promptEl.style.borderColor = '#ffd166';
-          promptEl.style.color = '#ffd166';
+        if (!nearestL.lit) {
+          const cost = nearestL.ever_lit ? 5 : 10;
+          const needed = cost - nearestL.deposited;
+          if (sim.player.carried > 0) {
+            promptEl.innerHTML = `✨ Nhấn <span style="background:#ffd166; color:#0c1223; padding:2px 8px; border-radius:4px;">E</span> để ${nearestL.ever_lit ? 'Thắp Lại' : 'Thắp Mới'} <b>${nearestL.id}</b> (${nearestL.deposited}/${cost})<br><span style="font-size:13px; font-weight:normal; color:#ffd166;">(Cần thêm ${needed} đom đóm)</span>`;
+            promptEl.style.borderColor = '#ffd166';
+            promptEl.style.color = '#ffd166';
+          } else {
+            promptEl.innerHTML = `⚠️ Đèn <b>${nearestL.id}</b> (${nearestL.deposited}/${cost}) — Bạn đang có <b>0</b> đom đóm!<br><span style="font-size:13px; font-weight:normal; color:#bbb;">(Hãy nhặt đom đóm xanh phát sáng trước)</span>`;
+            promptEl.style.borderColor = isColorblind ? '#ffffff' : '#ef476f';
+            promptEl.style.color = isColorblind ? '#ffffff' : '#ef476f';
+          }
         } else {
-          promptEl.innerHTML = `⚠️ Đèn <b>${nearestL.id}</b> (${nearestL.deposited}/10) — Bạn đang có <b>0</b> đom đóm!<br><span style="font-size:13px; font-weight:normal; color:#bbb;">(Hãy nhặt đom đóm xanh phát sáng trước)</span>`;
-          promptEl.style.borderColor = '#ef476f';
-          promptEl.style.color = '#ef476f';
+          // Lit lantern: Refuel prompt
+          const neededMotes = Math.ceil((100 - nearestL.fuel) / 10);
+          if (sim.player.carried > 0) {
+            promptEl.innerHTML = `⛽ Nhấn <span style="background:#ffd166; color:#0c1223; padding:2px 8px; border-radius:4px;">E</span> để Châm Dầu <b>${nearestL.id}</b> (${Math.round(nearestL.fuel)}% fuel)<br><span style="font-size:13px; font-weight:normal; color:#ffd166;">(Châm tối đa ${neededMotes} đom đóm)</span>`;
+            promptEl.style.borderColor = '#06d6a0';
+            promptEl.style.color = '#06d6a0';
+          } else {
+            promptEl.innerHTML = `ℹ️ Đèn <b>${nearestL.id}</b> (${Math.round(nearestL.fuel)}% fuel) — Bạn đang có <b>0</b> đom đóm để châm dầu!`;
+            promptEl.style.borderColor = '#ffd166';
+            promptEl.style.color = '#ffd166';
+          }
         }
       } else {
         promptEl.style.display = 'none';
@@ -1021,13 +1133,15 @@
         const desc = document.getElementById('modal-desc');
         modal.style.display = 'block';
         if (sim.state === 'won') {
-          title.innerText = 'CHIẾN THẮNG!';
+          title.innerText = 'CHIẾN THẮNG BÌNH MINH!';
           title.style.color = '#ffd166';
-          desc.innerText = `Bạn đã thắp sáng toàn bộ Đèn Lồng trong ${nightTitles[selectedNight]}! Tổng điểm: ${sim.score}`;
+          desc.innerText = `Bạn đã bảo vệ hòn đảo sáng rực rỡ tới bình minh! Tổng điểm: ${sim.score}`;
         } else {
           title.innerText = 'THẤT BẠI!';
-          title.style.color = '#ef476f';
-          desc.innerText = sim.reason === 'no_flames' ? 'Ngọn lửa sinh mệnh của Mây đã tắt!' : 'Trời đã rạng đông mà chưa thắp hết đèn!';
+          title.style.color = isColorblind ? '#ffffff' : '#ef476f';
+          desc.innerText = sim.reason === 'no_flames'
+            ? 'Ngọn lửa sinh mệnh của Mây đã tắt!'
+            : 'Trời đã rạng đông nhưng số đèn sáng không đạt yêu cầu 60%!';
         }
       }
 
