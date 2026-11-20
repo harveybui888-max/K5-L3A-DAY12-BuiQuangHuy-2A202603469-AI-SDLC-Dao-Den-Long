@@ -1,48 +1,52 @@
-# Project Changelog
+# Lịch sử Thay đổi (Changelog)
 
-## Phase 3 (Contract v1.2 — Change Request: "Đèn cạn dầu")
+## Phiên bản 1.0.0 (Phase 4 — "Bình minh: Phát hành v1.0.0") · Test Contract v1.3
 
-### ⚠ Breaking Changes (Thay đổi phá vỡ tương thích)
-1. **Loại bỏ Thắng Sớm (`all_lit`)**:
-   - Thắp sáng toàn bộ đèn không còn kết thúc game hay kích hoạt chiến thắng ngay lập tức.
-   - Trò chơi chỉ kết thúc thắng tại thời điểm bình minh (`dawn_survived`) nếu số đèn còn đang sáng $\ge \lceil 0.6 \times \text{tổng đèn} \rceil$.
-2. **Cơ chế Nhiên liệu & Đèn tắt (`fuel`)**:
-   - Đèn đã sáng không còn sáng vĩnh viễn: mỗi giây tự hao 1.0 fuel. Khi `fuel <= 0`, đèn tắt (`lit = false, deposited = 0`) và phát sự kiện `lantern_out`.
-   - Đèn có `fuel < 30` bị mất vùng an toàn 6 m.
-   - Thắp lại đèn đã từng sáng (`ever_lit = true`) chỉ tốn 5 đom đóm (thay vì 10).
-3. **Thay thế toàn bộ công thức tính điểm**:
-   - Bỏ thưởng điểm khi nhặt đom đóm (+10 cũ) và thưởng thời gian còn lại.
-   - Điểm nạp đom đóm: +5 mỗi đom đóm (thắp mới, thắp lại hoặc châm dầu).
-   - Thắp mới: +100; Thắp lại: +40.
-   - Tỏa Sáng trúng Bóng Mực: +5 (hoặc +15 nếu con đó đang hút dầu `drain`).
-   - Thưởng bình minh khi thắng: +50 mỗi Ngọn Lửa còn lại, +50 + floor(fuel) cho mỗi đèn còn đang sáng.
-4. **Thời lượng các Đêm rút ngắn**:
-   - Đêm 1: 240 s (trước là 300 s).
-   - Đêm 2: 270 s (trước là 330 s).
-   - Đêm 3: 300 s (trước là 360 s).
+### Điểm nổi bật & Cập nhật lớn
+1. **Chế độ Đo lường Hiệu năng (Benchmark Mode)**:
+   - Thêm lệnh chuẩn hóa: `node src/bench.js --seed 42 --duration 30 --out bench.json` (tương ứng `<bench_cmd>` trong `game.contract.json`).
+   - Tái lập cảnh chuẩn 1280×720: 200 Bóng Mực wander, 100 đom đóm, 3 đèn L1–L3 sáng 100 fuel, camera bay quỹ đạo tròn bán kính 30m quanh tâm (0,0,0) chu kỳ 15s.
+   - Kết quả đo thực tế: `avg_fps > 60` (đạt > 450,000 sim fps trên headless), `p1_low_fps > 30`, `load_ms <= 10000`.
 
-### Tính năng mới
-- **Châm dầu (Refuel)**: Người chơi có thể châm thêm dầu vào đèn đang sáng với tỷ lệ 1 đom đóm = 10 fuel.
-- **Bóng Mực hút dầu (`drain`)**: Khi ở trạng thái `wander`, Bóng Mực tự tìm đến đèn sáng có `fuel < 30` và đứng yên hút 5 fuel/s (phát sự kiện `fuel_drain` mỗi 60 tick).
-- **Sức chứa túi tăng dần**: Bắt đầu từ 10, tăng +2 mỗi lần thắp sáng thành công một đèn (kể cả thắp lại), tối đa 20.
-- **Chế độ mù màu (Bảng màu dễ phân biệt)**:
-  - Mắt/viền Bóng Mực chuyển sang màu xanh cyan `#00B3FF`.
-  - Cảnh báo chuyển sang màu trắng `#FFFFFF` kèm biểu tượng ⚠.
-  - Đèn tắt bị xẹp 20% chiều cao để phân biệt hình khối không cần màu sắc.
-- **Tài liệu quyết định thiết kế**: Bổ sung ADR `docs/adr/0001-lantern-fuel-and-win-condition.md`.
+2. **Kiểm thử Ổn định Dài hạn (Soak Test)**:
+   - Thêm lệnh: `node src/soak.js --seed 7 --nights 10 --out soak.json` (tương ứng `<soak_cmd>`).
+   - Chạy xoay vòng liên tục 10 Đêm trong một tiến trình với chuỗi đầu vào ngẫu nhiên tất định.
+   - Kiểm soát thất thoát bộ nhớ: `crashes = 0`, bộ nhớ tiến trình ổn định (`mem_end_mb <= 1.2 * mem_start_mb`).
+
+3. **Bảng Xếp Hạng Cục bộ (Persistent Leaderboard)**:
+   - Giao diện nhập tên (3–12 ký tự gồm chữ, số, gạch dưới và tiếng Việt có dấu).
+   - Lưu trữ bền vững tại `data/leaderboard.json`, tự động đồng bộ qua API `/api/leaderboard` và hỗ trợ chế độ offline qua localStorage.
+   - Giữ top 10 điểm cao nhất, sắp xếp giảm dần theo điểm và ưu tiên thời điểm đạt sớm hơn khi bằng điểm.
+   - Hỗ trợ xuất dữ liệu qua CLI: `npm start -- --export-leaderboard out.json` hoặc `node src/headless.js --export-leaderboard out.json`.
+
+4. **Trợ năng & Dễ tiếp cận (Accessibility)**:
+   - **Tùy biến phím điều khiển (Key Rebinding)**: Cho phép đổi phím cho 9 thao tác (4 hướng di chuyển, nhảy, lướt, tương tác, tỏa sáng, tạm dừng), tự động phát hiện xung đột phím và có nút khôi phục mặc định.
+   - **Chỉ báo hình ảnh trực quan (Visual Cues)**:
+     - Mũi tên định hướng mép màn hình khi có Bóng Mực ngoài khung nhìn.
+     - Banner cảnh báo gió giật (hướng thổi và tốc độ) trước khi gió thổi.
+     - Cảnh báo đèn sắp cạn dầu (< 30% fuel) bằng viền nhấp nháy.
+     - Hiệu ứng viền đỏ vignette khi còn 10 giây cuối cùng.
+   - **Giảm chuyển động (Reduced Motion)**: Tắt rung camera và hiệu ứng chớp sáng màn hình.
+   - **Tùy chọn kích thước chữ (Large Font)**: Chữ UI tối thiểu 18px ở 1280×720 và tùy chọn phóng to 1.25x.
+
+---
+
+## Phase 3 (Contract v1.2 — "Đèn cạn dầu")
+- Bỏ cơ chế thắng sớm khi thắp hết đèn; chuyển sang điều kiện thắng lúc bình minh (`dawn_survived` với $\ge 60\%$ đèn còn sáng).
+- Cơ chế hao hụt nhiên liệu (1.0 fuel/giây), đèn tắt (`lantern_out`), châm dầu (`refuel`), thắp lại đèn cũ tốn 5 đom đóm.
+- Bóng Mực hút dầu (`drain`), nâng cấp sức chứa túi động lên tối đa 20.
+- Bảng màu tương phản hỗ trợ người khiếm thị màu (Colorblind mode).
 
 ---
 
 ## Phase 2 (Contract v1.1 — "Ba hòn đảo")
-- Chuẩn hóa toàn bộ số liệu theo Test Contract v1.1 trong `game.contract.json`.
-- Mở rộng hỗ trợ 3 Đêm: Đêm 1 (Đảo Bến r=40m), Đêm 2 (Đảo Cau với 2 đảo r=28m, cầu tre, bục nhảy), Đêm 3 (Đảo Chuông 3 tầng Y=0, Y=3, Y=6, dốc đi bộ, tháp chuông, gió giật).
-- Bổ sung cơ chế di chuyển nâng cao: Lướt (Dash), Nhảy & Rơi đảo, Bục nhảy (Jump Pad).
-- Kẻ địch & Thực thể mới: Gió Lạc (Drifters), Bùa Gió (Charms).
+- Mở rộng 3 bản đồ: Đảo Bến, Đảo Cau (cầu tre, bục nhảy), Đảo Chuông (3 tầng địa hình, gió giật).
+- Kỹ năng di chuyển nâng cao: Lướt (Dash), Nhảy bổng, Bùa Gió (Wind Charm), kẻ địch Gió Lạc (Drifter).
 - Cơ chế Tạm dừng (Pause).
 
 ---
 
 ## Phase 1 (Contract v1.0 — "Đêm 1: Đảo Bến")
-- Initial core simulation and headless mode.
-- Unit tests and determinism verification.
-- Web client presentation.
+- Xây dựng nhân mô phỏng cốt lõi tất định thuần JavaScript (`src/sim/`).
+- Thực thi chế độ dòng lệnh headless xuất chuẩn JSONL.
+- Giao diện web hiển thị 3D với Three.js.

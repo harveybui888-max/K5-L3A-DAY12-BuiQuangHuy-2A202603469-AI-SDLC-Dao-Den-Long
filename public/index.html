@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đảo Đèn Lồng 3D — Lantern Island (Phase 3: Đèn cạn dầu)</title>
+  <title>Đảo Đèn Lồng 3D — Lantern Island v1.0.0 (Phase 4: Bình Minh)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
@@ -266,6 +266,183 @@
       cursor: pointer;
       pointer-events: auto;
     }
+
+    /* Accessibility: Large Font */
+    body.large-font {
+      font-size: 1.25em;
+    }
+    body.large-font .hud-card {
+      padding: 14px 22px;
+    }
+    body.large-font .timer {
+      font-size: 40px;
+    }
+    body.large-font .flames {
+      font-size: 32px;
+    }
+    body.large-font button {
+      font-size: 13px !important;
+      padding: 6px 12px !important;
+    }
+
+    /* Visual Cues for accessibility */
+    #danger-vignette {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      box-shadow: inset 0 0 80px rgba(239, 71, 111, 0.7);
+      pointer-events: none;
+      z-index: 15;
+      display: none;
+      animation: pulse-red 0.5s infinite alternate;
+    }
+    #wind-warning-banner {
+      position: absolute;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 180, 216, 0.95);
+      border: 1px solid #64ffda;
+      color: #fff;
+      padding: 8px 24px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      display: none;
+      z-index: 55;
+      box-shadow: 0 0 20px rgba(0, 180, 216, 0.6);
+      letter-spacing: 0.5px;
+    }
+    #low-fuel-banner {
+      position: absolute;
+      top: 135px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(239, 71, 111, 0.95);
+      border: 1px solid #ff758f;
+      color: #fff;
+      padding: 8px 24px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      display: none;
+      z-index: 55;
+      box-shadow: 0 0 20px rgba(239, 71, 111, 0.6);
+      animation: pulse-red 0.8s infinite;
+    }
+    #shade-indicator-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 12;
+    }
+
+    /* Modal Dialogs */
+    .app-modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(12, 18, 35, 0.98);
+      border: 2px solid #ffd166;
+      border-radius: 16px;
+      padding: 24px 32px;
+      z-index: 120;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+      display: none;
+      max-width: 90vw;
+      width: 500px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .app-modal h2 {
+      font-size: 22px;
+      color: #ffd166;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .app-modal table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .app-modal th, .app-modal td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .app-modal th {
+      color: #ffd166;
+      font-weight: 600;
+    }
+    .app-modal .modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .app-modal button {
+      background: #ffd166;
+      color: #0c1223;
+      border: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .keybind-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+    }
+    .keybind-btn {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #ffd166;
+      padding: 4px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      min-width: 80px;
+      text-align: center;
+    }
+    .keybind-btn.listening {
+      background: #ef476f;
+      color: #fff;
+      animation: pulse-red 0.5s infinite;
+    }
+    #keybind-conflict-msg {
+      color: #ef476f;
+      font-size: 12px;
+      margin-top: 8px;
+      text-align: center;
+      display: none;
+    }
+    #score-save-box {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+    }
+    #score-save-box input {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-right: 8px;
+      width: 180px;
+    }
     @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     @keyframes pulse-buff { 0% { box-shadow: 0 0 5px #ffd166; } 100% { box-shadow: 0 0 15px #ffd166; } }
   </style>
@@ -273,6 +450,10 @@
 </head>
 <body>
   <div id="canvas-container"></div>
+  <canvas id="shade-indicator-canvas"></canvas>
+  <div id="danger-vignette"></div>
+  <div id="wind-warning-banner">🍃 CẢNH BÁO: Gió giật 2 m/s sắp thổi!</div>
+  <div id="low-fuel-banner">⚠️ CẢNH BÁO: Đèn sắp cạn dầu (<30%)!</div>
 
   <div id="hud">
     <div class="hud-top">
@@ -301,6 +482,10 @@
             <button id="btn-night-2" onclick="switchNight(2)">Đêm 2</button>
             <button id="btn-night-3" onclick="switchNight(3)">Đêm 3</button>
           </div>
+          <button id="btn-leaderboard" class="toggle-btn" onclick="openLeaderboard()">🏆 Bảng xếp hạng</button>
+          <button id="btn-keybinds" class="toggle-btn" onclick="openKeybinds()">⌨️ Cài đặt phím</button>
+          <button id="btn-reduced-motion" class="toggle-btn" onclick="toggleReducedMotion()">🌀 Giảm chuyển động: TẮT</button>
+          <button id="btn-large-font" class="toggle-btn" onclick="toggleLargeFont()">🔍 Cỡ chữ: 1.0x</button>
           <button id="btn-colorblind" class="toggle-btn" onclick="toggleColorblind()">🎨 Bảng màu dễ phân biệt</button>
         </div>
       </div>
@@ -344,7 +529,55 @@
   <div id="modal">
     <h1 id="modal-title">CHIẾN THẮNG!</h1>
     <p id="modal-desc">Bạn đã giữ đảo sáng tới bình minh!</p>
-    <button onclick="location.reload()">Chơi Lại</button>
+    <div id="score-save-box">
+      <p style="font-size:13px; color:#ffd166; margin-bottom:8px;">Ghi danh vào Bảng Xếp Hạng:</p>
+      <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
+        <input id="player-name-input" type="text" maxlength="12" placeholder="Tên (3-12 ký tự)..." value="NgườiChơi" />
+        <button id="btn-save-score" onclick="submitScore()">Lưu Điểm</button>
+      </div>
+      <div id="score-save-msg" style="font-size:12px; margin-top:6px; min-height:16px;"></div>
+    </div>
+    <div style="margin-top:16px;">
+      <button onclick="location.reload()">Chơi Lại</button>
+      <button onclick="openLeaderboard()" style="background:#1e293b; color:#ffd166; border:1px solid #ffd166; margin-left:8px;">Xem BXH</button>
+    </div>
+  </div>
+
+  <!-- Leaderboard Modal -->
+  <div id="leaderboard-modal" class="app-modal">
+    <h2>🏆 BẢNG XẾP HẠNG TOP 10</h2>
+    <div id="leaderboard-list">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tên</th>
+            <th>Điểm</th>
+            <th>Đêm Thắng</th>
+            <th>Thời Gian</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-tbody">
+          <tr><td colspan="5" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button onclick="exportLeaderboardClient()">📥 Tải file JSON</button>
+      <button onclick="closeLeaderboard()">Đóng</button>
+    </div>
+  </div>
+
+  <!-- Keybind Remapping Modal -->
+  <div id="keybind-modal" class="app-modal">
+    <h2>⌨️ CÀI ĐẶT PHÍM ĐIỀU KHIỂN</h2>
+    <p style="font-size:12px; color:#aaa; margin-bottom:12px; text-align:center;">Bấm vào nút phím bất kỳ rồi bấm phím mới để gán lại. Bấm Esc để hủy gán.</p>
+    <div id="keybind-list"></div>
+    <div id="keybind-conflict-msg"></div>
+    <div class="modal-actions">
+      <button onclick="resetDefaultKeybinds()">Khôi phục mặc định</button>
+      <button onclick="closeKeybinds()">Đóng</button>
+    </div>
   </div>
 
   <script type="module">
@@ -371,6 +604,227 @@
       isColorblind = !isColorblind;
       localStorage.setItem('lantern_island_colorblind', isColorblind ? 'true' : 'false');
       applyColorblindUI();
+    };
+
+    // Reduced Motion Setting
+    let isReducedMotion = localStorage.getItem('lantern_island_reduced_motion') === 'true';
+    function applyReducedMotionUI() {
+      const btn = document.getElementById('btn-reduced-motion');
+      if (btn) {
+        if (isReducedMotion) {
+          btn.classList.add('active');
+          btn.innerText = '🌀 Giảm chuyển động: BẬT';
+        } else {
+          btn.classList.remove('active');
+          btn.innerText = '🌀 Giảm chuyển động: TẮT';
+        }
+      }
+    }
+    applyReducedMotionUI();
+
+    window.toggleReducedMotion = function() {
+      isReducedMotion = !isReducedMotion;
+      localStorage.setItem('lantern_island_reduced_motion', isReducedMotion ? 'true' : 'false');
+      applyReducedMotionUI();
+    };
+
+    // Large Font Setting
+    let isLargeFont = localStorage.getItem('lantern_island_large_font') === 'true';
+    function applyLargeFontUI() {
+      const btn = document.getElementById('btn-large-font');
+      if (isLargeFont) {
+        document.body.classList.add('large-font');
+        if (btn) {
+          btn.classList.add('active');
+          btn.innerText = '🔍 Cỡ chữ: 1.25x';
+        }
+      } else {
+        document.body.classList.remove('large-font');
+        if (btn) {
+          btn.classList.remove('active');
+          btn.innerText = '🔍 Cỡ chữ: 1.0x';
+        }
+      }
+    }
+    applyLargeFontUI();
+
+    window.toggleLargeFont = function() {
+      isLargeFont = !isLargeFont;
+      localStorage.setItem('lantern_island_large_font', isLargeFont ? 'true' : 'false');
+      applyLargeFontUI();
+    };
+
+    // Keybindings Config & Management
+    const DEFAULT_KEYBINDS = {
+      forward: { label: 'Tiến (Forward)', code: 'KeyW', key: 'w' },
+      backward: { label: 'Lùi (Backward)', code: 'KeyS', key: 's' },
+      left: { label: 'Trái (Left)', code: 'KeyA', key: 'a' },
+      right: { label: 'Phải (Right)', code: 'KeyD', key: 'd' },
+      jump: { label: 'Nhảy (Jump)', code: 'Space', key: ' ' },
+      dash: { label: 'Lướt (Dash)', code: 'ShiftLeft', key: 'shift' },
+      interact: { label: 'Tương tác / Nạp dầu', code: 'KeyE', key: 'e' },
+      pulse: { label: 'Tỏa Sáng (Pulse)', code: 'KeyF', key: 'f' },
+      pause: { label: 'Tạm dừng (Pause)', code: 'KeyP', key: 'p' }
+    };
+
+    let userKeybinds = JSON.parse(JSON.stringify(DEFAULT_KEYBINDS));
+    try {
+      const saved = JSON.parse(localStorage.getItem('lantern_island_keybinds'));
+      if (saved && typeof saved === 'object') {
+        for (const k in saved) {
+          if (userKeybinds[k]) {
+            userKeybinds[k].code = saved[k].code;
+            userKeybinds[k].key = saved[k].key;
+          }
+        }
+      }
+    } catch (e) {}
+
+    let listeningAction = null;
+
+    function renderKeybindList() {
+      const list = document.getElementById('keybind-list');
+      if (!list) return;
+      list.innerHTML = Object.entries(userKeybinds).map(([action, info]) => {
+        const isListening = listeningAction === action;
+        const displayKey = info.code.replace('Key', '').replace('Left', '').replace('Right', '');
+        return `
+          <div class="keybind-row">
+            <span>${info.label}</span>
+            <button class="keybind-btn ${isListening ? 'listening' : ''}" onclick="startListenKey('${action}')">
+              ${isListening ? 'Bấm phím...' : displayKey}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.openKeybinds = function() {
+      listeningAction = null;
+      document.getElementById('keybind-conflict-msg').style.display = 'none';
+      renderKeybindList();
+      document.getElementById('keybind-modal').style.display = 'block';
+    };
+
+    window.closeKeybinds = function() {
+      listeningAction = null;
+      document.getElementById('keybind-modal').style.display = 'none';
+    };
+
+    window.startListenKey = function(action) {
+      listeningAction = action;
+      document.getElementById('keybind-conflict-msg').style.display = 'none';
+      renderKeybindList();
+    };
+
+    window.resetDefaultKeybinds = function() {
+      userKeybinds = JSON.parse(JSON.stringify(DEFAULT_KEYBINDS));
+      localStorage.removeItem('lantern_island_keybinds');
+      listeningAction = null;
+      document.getElementById('keybind-conflict-msg').style.display = 'none';
+      renderKeybindList();
+    };
+
+    // Leaderboard Management
+    let currentLeaderboard = [];
+    async function loadLeaderboardData() {
+      try {
+        const res = await fetch('/api/leaderboard');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.entries)) {
+            currentLeaderboard = data.entries;
+            return currentLeaderboard;
+          }
+        }
+      } catch (err) {}
+      try {
+        const raw = localStorage.getItem('lantern_island_leaderboard');
+        if (raw) currentLeaderboard = JSON.parse(raw);
+      } catch (e) {}
+      return currentLeaderboard;
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    window.openLeaderboard = async function() {
+      document.getElementById('leaderboard-modal').style.display = 'block';
+      const tbody = document.getElementById('leaderboard-tbody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Đang tải...</td></tr>';
+      const list = await loadLeaderboardData();
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">Chưa có điểm nào. Hãy chơi và ghi danh!</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((e, idx) => `
+        <tr>
+          <td style="font-weight:bold; color:${idx === 0 ? '#ffd166' : idx === 1 ? '#06d6a0' : idx === 2 ? '#118ab2' : '#ccc'}">${idx + 1}</td>
+          <td><b>${escapeHtml(e.name)}</b></td>
+          <td style="color:#ffd166; font-weight:bold;">${e.score}</td>
+          <td>${e.nights_won} Đêm</td>
+          <td style="font-size:11px; color:#888;">${new Date(e.achieved_at).toLocaleDateString('vi-VN')}</td>
+        </tr>
+      `).join('');
+    };
+
+    window.closeLeaderboard = function() {
+      document.getElementById('leaderboard-modal').style.display = 'none';
+    };
+
+    window.exportLeaderboardClient = async function() {
+      const list = await loadLeaderboardData();
+      const blob = new Blob([JSON.stringify({ entries: list }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'leaderboard.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    window.submitScore = async function() {
+      const input = document.getElementById('player-name-input');
+      const msgEl = document.getElementById('score-save-msg');
+      const rawName = input ? input.value.trim() : '';
+      if (rawName.length < 3 || rawName.length > 12) {
+        msgEl.style.color = '#ef476f';
+        msgEl.innerText = '⚠️ Tên phải từ 3 đến 12 ký tự!';
+        return;
+      }
+      const entry = {
+        name: rawName,
+        score: sim.score,
+        nights_won: sim.state === 'won' ? selectedNight : Math.max(0, selectedNight - 1),
+        seed: 42,
+        achieved_at: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch('/api/leaderboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.entries) currentLeaderboard = resData.entries;
+        }
+      } catch (err) {}
+
+      try {
+        const raw = localStorage.getItem('lantern_island_leaderboard');
+        let localEntries = raw ? JSON.parse(raw) : [];
+        localEntries.push(entry);
+        localEntries.sort((a,b) => b.score !== a.score ? b.score - a.score : new Date(a.achieved_at) - new Date(b.achieved_at));
+        localStorage.setItem('lantern_island_leaderboard', JSON.stringify(localEntries.slice(0, 10)));
+      } catch (e) {}
+
+      msgEl.style.color = '#06d6a0';
+      msgEl.innerText = '✅ Đã lưu điểm thành công!';
+      document.getElementById('btn-save-score').disabled = true;
+      setTimeout(() => { openLeaderboard(); }, 800);
     };
 
     // Parse URL param for night
@@ -673,31 +1127,78 @@
       pendingPause = true;
     };
 
+    function matchesAction(action, code, key) {
+      const b = userKeybinds[action];
+      if (!b) return false;
+      const k = (key || '').toLowerCase();
+      if (b.code && b.code === code) return true;
+      if (b.key && b.key.toLowerCase() === k) return true;
+      // Common fallbacks
+      if (action === 'forward' && (code === 'ArrowUp')) return true;
+      if (action === 'backward' && (code === 'ArrowDown')) return true;
+      if (action === 'left' && (code === 'ArrowLeft')) return true;
+      if (action === 'right' && (code === 'ArrowRight')) return true;
+      if (action === 'jump' && code === 'Space') return true;
+      if (action === 'pause' && (code === 'Escape' || code === 'KeyP')) return true;
+      return false;
+    }
+
     window.addEventListener('keydown', (e) => {
-      const k = e.key.toLowerCase();
+      // If currently listening to rebind a key
+      if (listeningAction) {
+        e.preventDefault();
+        if (e.code === 'Escape') {
+          listeningAction = null;
+          document.getElementById('keybind-conflict-msg').style.display = 'none';
+          renderKeybindList();
+          return;
+        }
+
+        // Conflict Detection: check if code is already bound to another action
+        for (const [act, info] of Object.entries(userKeybinds)) {
+          if (act !== listeningAction && (info.code === e.code || (info.key && info.key === e.key.toLowerCase()))) {
+            const conflictEl = document.getElementById('keybind-conflict-msg');
+            conflictEl.innerText = `⚠️ Xung đột phím: Phím "${e.code}" đã được gán cho "${info.label}"!`;
+            conflictEl.style.display = 'block';
+            return;
+          }
+        }
+
+        userKeybinds[listeningAction].code = e.code;
+        userKeybinds[listeningAction].key = e.key.toLowerCase();
+        localStorage.setItem('lantern_island_keybinds', JSON.stringify(userKeybinds));
+        listeningAction = null;
+        document.getElementById('keybind-conflict-msg').style.display = 'none';
+        renderKeybindList();
+        return;
+      }
+
       const code = e.code;
-      if (k === 'w' || code === 'KeyW' || code === 'ArrowUp') keys.w = true;
-      if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = true;
-      if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = true;
-      if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = true;
-      if (code === 'Space') keys.jump = true;
-      if (code === 'ShiftLeft' || code === 'ShiftRight' || code === 'KeyQ') keys.dash = true;
-      if (k === 'e' || code === 'KeyE') keys.interact = true;
-      if (k === 'f' || code === 'KeyF') keys.pulse = true;
-      if (k === 'p' || code === 'KeyP' || code === 'Escape') pendingPause = true;
+      const k = e.key;
+
+      if (matchesAction('forward', code, k)) keys.w = true;
+      if (matchesAction('backward', code, k)) keys.s = true;
+      if (matchesAction('left', code, k)) keys.a = true;
+      if (matchesAction('right', code, k)) keys.d = true;
+      if (matchesAction('jump', code, k)) keys.jump = true;
+      if (matchesAction('dash', code, k)) keys.dash = true;
+      if (matchesAction('interact', code, k)) keys.interact = true;
+      if (matchesAction('pulse', code, k)) keys.pulse = true;
+      if (matchesAction('pause', code, k)) pendingPause = true;
     });
 
     window.addEventListener('keyup', (e) => {
-      const k = e.key.toLowerCase();
       const code = e.code;
-      if (k === 'w' || code === 'KeyW' || code === 'ArrowUp') keys.w = false;
-      if (k === 's' || code === 'KeyS' || code === 'ArrowDown') keys.s = false;
-      if (k === 'a' || code === 'KeyA' || code === 'ArrowLeft') keys.a = false;
-      if (k === 'd' || code === 'KeyD' || code === 'ArrowRight') keys.d = false;
-      if (code === 'Space') keys.jump = false;
-      if (code === 'ShiftLeft' || code === 'ShiftRight' || code === 'KeyQ') keys.dash = false;
-      if (k === 'e' || code === 'KeyE') keys.interact = false;
-      if (k === 'f' || code === 'KeyF') keys.pulse = false;
+      const k = e.key;
+
+      if (matchesAction('forward', code, k)) keys.w = false;
+      if (matchesAction('backward', code, k)) keys.s = false;
+      if (matchesAction('left', code, k)) keys.a = false;
+      if (matchesAction('right', code, k)) keys.d = false;
+      if (matchesAction('jump', code, k)) keys.jump = false;
+      if (matchesAction('dash', code, k)) keys.dash = false;
+      if (matchesAction('interact', code, k)) keys.interact = false;
+      if (matchesAction('pulse', code, k)) keys.pulse = false;
     });
 
     let isMouseDown = false;
@@ -999,13 +1500,111 @@
         mesh.rotation.y += 0.04;
       });
 
-      // Camera Follows Player
+      // Camera Follows Player (respecting reduced motion setting)
       const camDist = 11;
       const camHeight = 6.5;
-      camera.position.x = sim.player.pos[0] + camDist * Math.sin(camYaw);
-      camera.position.z = sim.player.pos[2] + camDist * Math.cos(camYaw);
-      camera.position.y = sim.player.pos[1] + camHeight;
+      const targetCamX = sim.player.pos[0] + camDist * Math.sin(camYaw);
+      const targetCamZ = sim.player.pos[2] + camDist * Math.cos(camYaw);
+      const targetCamY = sim.player.pos[1] + camHeight;
+
+      camera.position.x = targetCamX;
+      camera.position.z = targetCamZ;
+      camera.position.y = targetCamY;
       camera.lookAt(sim.player.pos[0], sim.player.pos[1] + 1.2, sim.player.pos[2]);
+
+      // Visual Cues 1: Off-screen Shade Directional Indicators (for hearing impaired)
+      const indCanvas = document.getElementById('shade-indicator-canvas');
+      if (indCanvas.width !== window.innerWidth || indCanvas.height !== window.innerHeight) {
+        indCanvas.width = window.innerWidth;
+        indCanvas.height = window.innerHeight;
+      }
+      const indCtx = indCanvas.getContext('2d');
+      indCtx.clearRect(0, 0, indCanvas.width, indCanvas.height);
+
+      const cx = indCanvas.width / 2;
+      const cy = indCanvas.height / 2;
+      const margin = 35;
+
+      sim.shades.forEach(s => {
+        if (s.state === 'removed') return;
+        const v = new THREE.Vector3(s.pos[0], s.pos[1] + 0.8, s.pos[2]);
+        v.project(camera);
+
+        const isBehind = v.z > 1;
+        const isOffscreen = isBehind || v.x < -0.9 || v.x > 0.9 || v.y < -0.9 || v.y > 0.9;
+        const distXZ = Math.hypot(sim.player.pos[0] - s.pos[0], sim.player.pos[2] - s.pos[2]);
+
+        if (isOffscreen && distXZ <= 22) {
+          let screenX = (v.x * 0.5 + 0.5) * indCanvas.width;
+          let screenY = (-(v.y * 0.5) + 0.5) * indCanvas.height;
+
+          if (isBehind) {
+            screenX = indCanvas.width - screenX;
+            screenY = indCanvas.height - screenY;
+          }
+
+          let dx = screenX - cx;
+          let dy = screenY - cy;
+          const angle = Math.atan2(dy, dx);
+
+          const maxX = indCanvas.width / 2 - margin;
+          const maxY = indCanvas.height / 2 - margin;
+          let edgeX, edgeY;
+
+          if (Math.abs(dx) * maxY > Math.abs(dy) * maxX) {
+            edgeX = dx > 0 ? maxX : -maxX;
+            edgeY = (dx > 0 ? maxX : -maxX) * (dy / dx);
+          } else {
+            edgeY = dy > 0 ? maxY : -maxY;
+            edgeX = (dy > 0 ? maxY : -maxY) * (dx / dy);
+          }
+
+          const drawX = cx + edgeX;
+          const drawY = cy + edgeY;
+
+          indCtx.save();
+          indCtx.translate(drawX, drawY);
+          indCtx.rotate(angle);
+          indCtx.fillStyle = isColorblind ? '#00b3ff' : '#ef476f';
+          indCtx.shadowColor = isColorblind ? '#00b3ff' : '#ef476f';
+          indCtx.shadowBlur = 8;
+          indCtx.beginPath();
+          indCtx.moveTo(14, 0);
+          indCtx.lineTo(-10, -9);
+          indCtx.lineTo(-5, 0);
+          indCtx.lineTo(-10, 9);
+          indCtx.closePath();
+          indCtx.fill();
+          indCtx.restore();
+        }
+      });
+
+      // Visual Cues 2: Last 10s Countdown Red Border Vignette
+      const dangerVignette = document.getElementById('danger-vignette');
+      if (sim.time_left_s <= 10 && sim.state === 'playing') {
+        dangerVignette.style.display = 'block';
+      } else {
+        dangerVignette.style.display = 'none';
+      }
+
+      // Visual Cues 3: Wind Warning Banner (visual alert before/during gust)
+      const windBanner = document.getElementById('wind-warning-banner');
+      if (sim.wind && sim.wind.active && sim.state === 'playing') {
+        windBanner.style.display = 'block';
+        windBanner.innerText = `🍃 GIÓ GIẬT HƯỚNG ${sim.wind.dir_deg}° (2 m/s) ĐANG THỔI!`;
+      } else {
+        windBanner.style.display = 'none';
+      }
+
+      // Visual Cues 4: Low Fuel Alert (<30% fuel on any lit lantern)
+      const lowFuelBanner = document.getElementById('low-fuel-banner');
+      const lowFuelLanterns = sim.lanterns.filter(l => l.lit && l.fuel < 30);
+      if (lowFuelLanterns.length > 0 && sim.state === 'playing') {
+        lowFuelBanner.style.display = 'block';
+        lowFuelBanner.innerText = `⚠️ CẢNH BÁO: Đèn ${lowFuelLanterns.map(l => l.id).join(', ')} sắp cạn dầu (<30%)!`;
+      } else {
+        lowFuelBanner.style.display = 'none';
+      }
 
       // HUD updates
       document.getElementById('hud-flames').innerText = '🔥'.repeat(Math.max(0, sim.player.flames));

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Sim } from './sim/sim.js';
+import { exportLeaderboard } from './leaderboard.js';
 
 function parseArgs(args) {
   const options = {
@@ -10,12 +11,15 @@ function parseArgs(args) {
     snapshotEvery: 0,
     scenarioPath: null,
     inputsPath: null,
-    outPath: null
+    outPath: null,
+    exportLeaderboardPath: null
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg === '--seed' && i + 1 < args.length) {
+    if (arg === '--export-leaderboard' && i + 1 < args.length) {
+      options.exportLeaderboardPath = args[++i];
+    } else if (arg === '--seed' && i + 1 < args.length) {
       options.seed = parseInt(args[++i], 10);
       if (isNaN(options.seed)) throw new Error('Invalid --seed parameter');
     } else if (arg === '--night' && i + 1 < args.length) {
@@ -96,6 +100,10 @@ export function runHeadless(args) {
 
   try {
     opts = parseArgs(args);
+    if (opts.exportLeaderboardPath) {
+      exportLeaderboard(opts.exportLeaderboardPath);
+      return 0;
+    }
     scenario = loadScenario(opts.scenarioPath);
     inputFrames = loadInputs(opts.inputsPath);
   } catch (err) {

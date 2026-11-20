@@ -1,6 +1,6 @@
 # Bằng chứng kiểm chứng Phase 3 (Proof Report)
 
-- **Ngày chạy**: 2026-11-20T09:11:35.583Z
+- **Ngày chạy**: 2026-11-20T10:06:15.793Z
 - **Node.js**: v22.12.0
 - **Nền tảng**: win32 x64
 - **Phiên bản Contract**: Test Contract v1.2 (`game.contract.json`)
@@ -38,5 +38,5 @@
 - So sánh 2 tiến trình độc lập: **TRÙNG KHỚP 100% TỪNG BYTE**.
 
 ## 4. Hiệu năng mô phỏng (Benchmark full 300s = 18,000 ticks)
-- Thời gian mô phỏng 18,000 tick: **142.38 ms**
-- Tốc độ xử lý: **126422 tick/giây** (vượt xa yêu cầu thời gian thực).
+- Thời gian mô phỏng 18,000 tick: **118.27 ms**
+- Tốc độ xử lý: **152200 tick/giây** (vượt xa yêu cầu thời gian thực).
