@@ -1,0 +1,23 @@
+{
+  "name": "dao-den-long",
+  "version": "1.0.0",
+  "description": "Day 12 AI SDLC — Đảo Đèn Lồng 3D Game & Headless Simulation",
+  "type": "module",
+  "main": "src/headless.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test tests/*.test.js",
+    "headless": "node src/headless.js",
+    "verify": "node scripts/verify.js"
+  },
+  "keywords": [
+    "ai-sdlc",
+    "3d-game",
+    "simulation",
+    "headless",
+    "threejs"
+  ],
+  "author": "Bui Quang Huy <2A202603469>",
+  "license": "MIT"
+}

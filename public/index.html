@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đảo Đèn Lồng 3D — Lantern Island</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #050811;
+      color: #eee;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    /* HUD Overlay */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+    }
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .hud-card {
+      background: rgba(10, 15, 29, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 204, 102, 0.25);
+      border-radius: 12px;
+      padding: 12px 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .flames {
+      font-size: 24px;
+      color: #ff5533;
+      letter-spacing: 4px;
+    }
+    .motes {
+      font-size: 18px;
+      color: #ffd166;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+    .timer {
+      font-size: 32px;
+      font-weight: 700;
+      color: #06d6a0;
+      text-align: center;
+      min-width: 120px;
+    }
+    .timer.warning {
+      color: #ef476f;
+      animation: pulse-red 1s infinite;
+    }
+    .score {
+      font-size: 18px;
+      color: #118ab2;
+      text-align: right;
+      font-weight: 600;
+    }
+    .lanterns-status {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .lantern-badge {
+      background: rgba(20, 25, 45, 0.85);
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.3s;
+    }
+    .lantern-badge.lit {
+      border-color: #ffd166;
+      background: rgba(255, 209, 102, 0.2);
+      color: #ffd166;
+      box-shadow: 0 0 12px rgba(255, 209, 102, 0.4);
+    }
+    .hud-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .controls-hint {
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.6;
+    }
+    .controls-hint span {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: bold;
+    }
+    #minimap {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: rgba(5, 10, 20, 0.85);
+      border: 2px solid rgba(255, 209, 102, 0.3);
+      box-shadow: 0 0 15px rgba(0,0,0,0.6);
+    }
+    /* Notification Modal */
+    #modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(12, 18, 35, 0.95);
+      border: 2px solid #ffd166;
+      border-radius: 16px;
+      padding: 30px 40px;
+      text-align: center;
+      z-index: 100;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      display: none;
+    }
+    #modal h1 { font-size: 36px; margin-bottom: 12px; }
+    #modal p { font-size: 18px; margin-bottom: 24px; color: #ccc; }
+    #modal button {
+      background: #ffd166;
+      color: #0c1223;
+      border: none;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background 0.2s;
+    }
+    #modal button:hover { background: #ffe299; }
+    @keyframes pulse-red {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="hud">
+    <div class="hud-top">
+      <div class="hud-card">
+        <div class="flames" id="hud-flames">🔥🔥🔥</div>
+        <div class="motes" id="hud-motes">🏮 Đom đóm: 0 / 10</div>
+        <div class="lanterns-status" id="hud-lanterns"></div>
+      </div>
+      <div class="hud-card">
+        <div class="timer" id="hud-timer">05:00</div>
+      </div>
+      <div class="hud-card">
+        <div class="score" id="hud-score">Điểm: 0</div>
+        <div style="font-size: 13px; color: #888; margin-top: 4px; text-align: right;" id="hud-pulse">Xung Sáng: Sẵn sàng (F/Space)</div>
+      </div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="hud-card controls-hint">
+        <p><span>W A S D</span> Di chuyển | <span>E</span> Nạp Đèn Lớn</p>
+        <p><span>Space</span> / <span>F</span> Xung Sáng (Tốn 1 đom đóm để xua Bóng Mực)</p>
+        <p><span>Chuột</span> Xoay camera</p>
+      </div>
+      <canvas id="minimap" width="140" height="140"></canvas>
+    </div>
+  </div>
+
+  <div id="modal">
+    <h1 id="modal-title">CHIẾN THẮNG!</h1>
+    <p id="modal-desc">Bạn đã thắp sáng toàn bộ Đèn Lồng Lớn trên Đảo Bến!</p>
+    <button onclick="location.reload()">Chơi Lại</button>
+  </div>
+
+  <script type="module">
+    import { Sim } from '/src/sim/sim.js';
+
+    // 1. Audio Engine (Web Audio API procedural sound)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration, gainVal = 0.1) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const sfx = {
+      mote: () => playTone(880, 'sine', 0.2, 0.08),
+      deposit: () => playTone(440, 'triangle', 0.3, 0.1),
+      lit: () => {
+        playTone(523.25, 'sine', 0.4, 0.15);
+        setTimeout(() => playTone(659.25, 'sine', 0.4, 0.15), 150);
+        setTimeout(() => playTone(783.99, 'sine', 0.6, 0.2), 300);
+      },
+      pulse: () => playTone(150, 'sawtooth', 0.5, 0.2),
+      hit: () => playTone(90, 'sawtooth', 0.4, 0.25)
+    };
+
+    // 2. Initialize Game Sim
+    const sim = new Sim({ seed: 42 });
+
+    // 3. Setup Three.js Scene
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x060914);
+    scene.fog = new THREE.FogExp2(0x060914, 0.025);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0x182035, 1.2);
+    scene.add(ambientLight);
+
+    const moonLight = new THREE.DirectionalLight(0x7799bb, 0.8);
+    moonLight.position.set(20, 50, 20);
+    scene.add(moonLight);
+
+    // Ocean Plane
+    const oceanGeo = new THREE.PlaneGeometry(300, 300);
+    const oceanMat = new THREE.MeshStandardMaterial({ color: 0x030712, roughness: 0.1, metalness: 0.8 });
+    const ocean = new THREE.Mesh(oceanGeo, oceanMat);
+    ocean.rotation.x = -Math.PI / 2;
+    ocean.position.y = -0.1;
+    scene.add(ocean);
+
+    // Island (Radius 40m)
+    const islandGeo = new THREE.CylinderGeometry(40, 42, 2, 64);
+    const islandMat = new THREE.MeshStandardMaterial({ color: 0x142018, roughness: 0.9 });
+    const island = new THREE.Mesh(islandGeo, islandMat);
+    island.position.y = -1;
+    scene.add(island);
+
+    // Island Border Stones
+    const stoneGroup = new THREE.Group();
+    for (let a = 0; a < Math.PI * 2; a += 0.2) {
+      const stoneGeo = new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.5);
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x222a30, roughness: 0.8 });
+      const stone = new THREE.Mesh(stoneGeo, stoneMat);
+      stone.position.set(40 * Math.sin(a), 0.2, 40 * Math.cos(a));
+      stoneGroup.add(stone);
+    }
+    scene.add(stoneGroup);
+
+    // Player Mesh (Mây - người giữ đèn với nón lá)
+    const playerGroup = new THREE.Group();
+    
+    // Body (Áo dài lam)
+    const bodyGeo = new THREE.CylinderGeometry(0.3, 0.45, 1.2, 16);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3a6073 });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 0.6;
+    playerGroup.add(body);
+
+    // Head
+    const headGeo = new THREE.SphereGeometry(0.25, 16, 16);
+    const headMat = new THREE.MeshStandardMaterial({ color: 0xfad0c4 });
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.y = 1.35;
+    playerGroup.add(head);
+
+    // Nón lá (Conical hat)
+    const hatGeo = new THREE.ConeGeometry(0.7, 0.35, 24);
+    const hatMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
+    const hat = new THREE.Mesh(hatGeo, hatMat);
+    hat.position.y = 1.55;
+    hat.rotation.z = 0.1; // hơi nghiêng duyên dáng
+    playerGroup.add(hat);
+
+    // Lồng đèn nhỏ cầm tay của Mây
+    const handLantern = new THREE.PointLight(0xffcc66, 1.5, 8);
+    const handLanternGeo = new THREE.SphereGeometry(0.12, 12, 12);
+    const handLanternMat = new THREE.MeshBasicMaterial({ color: 0xffe082 });
+    const handLanternMesh = new THREE.Mesh(handLanternGeo, handLanternMat);
+    handLanternMesh.position.set(0.4, 0.7, 0.3);
+    handLantern.position.copy(handLanternMesh.position);
+    playerGroup.add(handLanternMesh);
+    playerGroup.add(handLantern);
+
+    scene.add(playerGroup);
+
+    // 5 Lanterns
+    const lanternMeshes = [];
+    sim.lanterns.forEach((l) => {
+      const g = new THREE.Group();
+      
+      // Pillar
+      const pillarGeo = new THREE.CylinderGeometry(0.4, 0.5, 2.5, 8);
+      const pillarMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
+      const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+      pillar.position.y = 1.25;
+      g.add(pillar);
+
+      // Glass cage
+      const cageGeo = new THREE.BoxGeometry(1.2, 1.5, 1.2);
+      const cageMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, wireframe: true });
+      const cage = new THREE.Mesh(cageGeo, cageMat);
+      cage.position.y = 2.8;
+      g.add(cage);
+
+      // Light core
+      const coreGeo = new THREE.SphereGeometry(0.45, 16, 16);
+      const coreMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+      const core = new THREE.Mesh(coreGeo, coreMat);
+      core.position.y = 2.8;
+      g.add(core);
+
+      // PointLight
+      const light = new THREE.PointLight(0xffa500, 0, 16);
+      light.position.y = 2.8;
+      g.add(light);
+
+      g.position.set(l.pos[0], l.pos[1], l.pos[2]);
+      scene.add(g);
+      lanternMeshes.push({ group: g, core, light, data: l });
+    });
+
+    // Motes Meshes Map
+    const moteMeshMap = new Map();
+    const moteGeo = new THREE.SphereGeometry(0.18, 8, 8);
+    const moteMat = new THREE.MeshBasicMaterial({ color: 0x64ffda });
+
+    // Shades Meshes Map
+    const shadeMeshMap = new Map();
+    const shadeGeo = new THREE.SphereGeometry(0.8, 16, 16);
+
+    // Input Handling
+    const keys = { w: false, a: false, s: false, d: false, interact: false, pulse: false };
+    let camYaw = 0;
+
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w') keys.w = true;
+      if (k === 's') keys.s = true;
+      if (k === 'a') keys.a = true;
+      if (k === 'd') keys.d = true;
+      if (k === 'e') keys.interact = true;
+      if (k === 'f' || k === ' ') keys.pulse = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w') keys.w = false;
+      if (k === 's') keys.s = false;
+      if (k === 'a') keys.a = false;
+      if (k === 'd') keys.d = false;
+      if (k === 'e') keys.interact = false;
+      if (k === 'f' || k === ' ') keys.pulse = false;
+    });
+
+    let isMouseDown = false;
+    window.addEventListener('mousedown', () => isMouseDown = true);
+    window.addEventListener('mouseup', () => isMouseDown = false);
+    window.addEventListener('mousemove', (e) => {
+      if (isMouseDown) {
+        camYaw -= e.movementX * 0.005;
+      }
+    });
+
+    // Minimap Rendering
+    const minimapCanvas = document.getElementById('minimap');
+    const minimapCtx = minimapCanvas.getContext('2d');
+
+    function drawMinimap() {
+      const w = 140;
+      const h = 140;
+      const cx = w / 2;
+      const cy = h / 2;
+      const scale = (w / 2) / 42;
+
+      minimapCtx.clearRect(0, 0, w, h);
+      
+      // Island base
+      minimapCtx.beginPath();
+      minimapCtx.arc(cx, cy, 40 * scale, 0, Math.PI * 2);
+      minimapCtx.fillStyle = 'rgba(20, 32, 24, 0.9)';
+      minimapCtx.fill();
+      minimapCtx.strokeStyle = 'rgba(255, 209, 102, 0.3)';
+      minimapCtx.stroke();
+
+      // Lanterns
+      sim.lanterns.forEach((l) => {
+        const lx = cx + l.pos[0] * scale;
+        const ly = cy + l.pos[2] * scale;
+        minimapCtx.beginPath();
+        minimapCtx.arc(lx, ly, 4, 0, Math.PI * 2);
+        minimapCtx.fillStyle = l.lit ? '#ffd166' : '#555';
+        minimapCtx.fill();
+      });
+
+      // Motes
+      minimapCtx.fillStyle = '#64ffda';
+      sim.motes.forEach((m) => {
+        const mx = cx + m.pos[0] * scale;
+        const my = cy + m.pos[2] * scale;
+        minimapCtx.fillRect(mx - 1, my - 1, 2, 2);
+      });
+
+      // Shades
+      sim.shades.forEach((s) => {
+        const sx = cx + s.pos[0] * scale;
+        const sy = cy + s.pos[2] * scale;
+        minimapCtx.beginPath();
+        minimapCtx.arc(sx, sy, 3, 0, Math.PI * 2);
+        minimapCtx.fillStyle = s.state === 'stunned' ? '#00b4d8' : '#e63946';
+        minimapCtx.fill();
+      });
+
+      // Player
+      const px = cx + sim.player.pos[0] * scale;
+      const py = cy + sim.player.pos[2] * scale;
+      minimapCtx.beginPath();
+      minimapCtx.arc(px, py, 4, 0, Math.PI * 2);
+      minimapCtx.fillStyle = '#fff';
+      minimapCtx.fill();
+    }
+
+    // Main Game Loop (Sync 60Hz tick with requestAnimationFrame)
+    let lastTime = performance.now();
+    let tickAccumulator = 0;
+    const tickTime = 1000 / 60;
+
+    function animate(now) {
+      requestAnimationFrame(animate);
+      const dt = now - lastTime;
+      lastTime = now;
+      tickAccumulator += dt;
+
+      while (tickAccumulator >= tickTime) {
+        if (sim.state === 'playing') {
+          // Calculate move vector relative to camera yaw
+          let mx = 0;
+          let mz = 0;
+          if (keys.w) mz += 1;
+          if (keys.s) mz -= 1;
+          if (keys.a) mx -= 1;
+          if (keys.d) mx += 1;
+
+          const events = sim.step({
+            move: [mx, mz],
+            cam_yaw_deg: (-camYaw * 180) / Math.PI,
+            interact: keys.interact,
+            pulse: keys.pulse
+          });
+
+          // Play Audio SFX
+          events.forEach((e) => {
+            if (e.name === 'mote_picked') sfx.mote();
+            if (e.name === 'deposit') sfx.deposit();
+            if (e.name === 'lantern_lit') sfx.lit();
+            if (e.name === 'pulse') sfx.pulse();
+            if (e.name === 'player_hit') sfx.hit();
+          });
+        }
+        tickAccumulator -= tickTime;
+      }
+
+      // Update 3D Entity Visuals
+      playerGroup.position.set(sim.player.pos[0], sim.player.pos[1], sim.player.pos[2]);
+
+      // Lanterns
+      lanternMeshes.forEach(({ core, light, data }) => {
+        if (data.lit) {
+          core.material.color.setHex(0xffea00);
+          light.intensity = 2.5;
+        } else {
+          core.material.color.setHex(0x334155);
+          light.intensity = 0;
+        }
+      });
+
+      // Motes
+      const activeMoteIds = new Set(sim.motes.map(m => m.id));
+      for (const [id, mesh] of moteMeshMap) {
+        if (!activeMoteIds.has(id)) {
+          scene.remove(mesh);
+          moteMeshMap.delete(id);
+        }
+      }
+      sim.motes.forEach(m => {
+        let mesh = moteMeshMap.get(m.id);
+        if (!mesh) {
+          mesh = new THREE.Mesh(moteGeo, moteMat);
+          scene.add(mesh);
+          moteMeshMap.set(m.id, mesh);
+        }
+        mesh.position.set(m.pos[0], m.pos[1] + Math.sin(now * 0.005 + m.pos[0]) * 0.2, m.pos[2]);
+      });
+
+      // Shades
+      const activeShadeIds = new Set(sim.shades.map(s => s.id));
+      for (const [id, mesh] of shadeMeshMap) {
+        if (!activeShadeIds.has(id)) {
+          scene.remove(mesh);
+          shadeMeshMap.delete(id);
+        }
+      }
+      sim.shades.forEach(s => {
+        let mesh = shadeMeshMap.get(s.id);
+        if (!mesh) {
+          const shadeMat = new THREE.MeshStandardMaterial({ color: 0x1f1124, roughness: 0.3 });
+          mesh = new THREE.Mesh(shadeGeo, shadeMat);
+          scene.add(mesh);
+          shadeMeshMap.set(s.id, mesh);
+        }
+        mesh.position.set(s.pos[0], s.pos[1] + 0.8, s.pos[2]);
+        if (s.state === 'stunned') {
+          mesh.material.color.setHex(0x0077b6);
+          mesh.rotation.y += 0.2;
+        } else {
+          mesh.material.color.setHex(0x1f1124);
+        }
+      });
+
+      // Camera Follows Player (Third Person)
+      const camDist = 10;
+      const camHeight = 6;
+      camera.position.x = sim.player.pos[0] + camDist * Math.sin(camYaw);
+      camera.position.z = sim.player.pos[2] + camDist * Math.cos(camYaw);
+      camera.position.y = sim.player.pos[1] + camHeight;
+      camera.lookAt(sim.player.pos[0], sim.player.pos[1] + 1.2, sim.player.pos[2]);
+
+      // Update HUD
+      document.getElementById('hud-flames').innerText = '🔥'.repeat(Math.max(0, sim.player.flames));
+      document.getElementById('hud-motes').innerText = `🏮 Đom đóm: ${sim.player.carried} / 10`;
+      document.getElementById('hud-score').innerText = `Điểm: ${sim.score}`;
+
+      const m = Math.floor(sim.time_left_s / 60);
+      const s = Math.floor(sim.time_left_s % 60);
+      const timerEl = document.getElementById('hud-timer');
+      timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      if (sim.time_left_s <= 30) timerEl.classList.add('warning');
+
+      const lanternsDiv = document.getElementById('hud-lanterns');
+      lanternsDiv.innerHTML = sim.lanterns.map(l => `
+        <div class="lantern-badge ${l.lit ? 'lit' : ''}">
+          <b>${l.id}</b>
+          <span>${l.lit ? '✔ SÁNG' : `${l.deposited}/5`}</span>
+        </div>
+      `).join('');
+
+      drawMinimap();
+
+      // Check Game Over Modal
+      if (sim.state !== 'playing') {
+        const modal = document.getElementById('modal');
+        const title = document.getElementById('modal-title');
+        const desc = document.getElementById('modal-desc');
+        modal.style.display = 'block';
+        if (sim.state === 'won') {
+          title.innerText = 'CHIẾN THẮNG!';
+          title.style.color = '#ffd166';
+          desc.innerText = `Bạn đã thắp sáng cả 5 Đèn Lồng Lớn! Tổng điểm: ${sim.score}`;
+        } else {
+          title.innerText = 'THẤT BẠI!';
+          title.style.color = '#ef476f';
+          desc.innerText = sim.reason === 'no_flames' ? 'Ngọn lửa sinh mệnh của Mây đã tắt!' : 'Trời đã rạng đông mà chưa thắp hết đèn!';
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    requestAnimationFrame(animate);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
